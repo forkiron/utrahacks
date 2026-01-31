@@ -238,6 +238,8 @@ export default function LiveCoachPlayer() {
             setTtsAvailable(false);
             setStatus("ElevenLabs not configured. Text-only commentary.");
           }
+        } else {
+          setStatus("Audio unavailable. Commentary will remain text-only.");
         }
       }
     } catch (err) {

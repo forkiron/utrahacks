@@ -23,30 +23,30 @@ If uncertain, use probabilistic language like "looks like" or "seems to".
 Return JSON only.`;
 
 const GENERIC_LINES = [
-  "Maintaining pace—steady control through this section.",
-  "Careful here—small adjustments will keep you centered.",
-  "Smooth segment—holding a consistent line and pace.",
-  "Controlled movement—nice balance and steady correction.",
+  "Maintaining pace - steady control through this section.",
+  "Careful here - small adjustments will keep you centered.",
+  "Smooth segment - holding a consistent line and pace.",
+  "Controlled movement - nice balance and steady correction.",
 ];
 
 const DRIFT_LEFT_LINES = [
-  "Drifting left—tighten the turn to recover.",
-  "Left pull detected—ease a correction back to center.",
+  "Drifting left - tighten the turn to recover.",
+  "Left pull detected - ease a correction back to center.",
 ];
 
 const DRIFT_RIGHT_LINES = [
-  "Drifting right—smooth correction back to center.",
-  "Right bias showing—guide it gently toward the line.",
+  "Drifting right - smooth correction back to center.",
+  "Right bias showing - guide it gently toward the line.",
 ];
 
 const LINE_WEAK_LINES = [
-  "Line looks faint—slow down and re-center to keep tracking.",
-  "Tracking is shaky—small corrections should regain the path.",
+  "Line looks faint - slow down and re-center to keep tracking.",
+  "Tracking is shaky - small corrections should regain the path.",
 ];
 
 const OBSTACLE_LINES = [
-  "Approaching an obstacle—steady pace and clean clearance.",
-  "Obstacle ahead—slow and steady to avoid contact.",
+  "Approaching an obstacle - steady pace and clean clearance.",
+  "Obstacle ahead - slow and steady to avoid contact.",
 ];
 
 function sanitizeCommentary(text: string): string {
@@ -136,7 +136,7 @@ async function generateMockCommentary(
     line = pickByHash(OBSTACLE_LINES, hash);
   } else if (stats.variance > 900) {
     action = "turning";
-    line = "Clean turn—good correction back toward the line.";
+    line = "Clean turn - good correction back toward the line.";
   } else {
     action = "steady";
     line = pickByHash(GENERIC_LINES, hash);
@@ -178,7 +178,7 @@ async function generateGeminiCommentary(
   };
 
   return {
-    text: sanitizeCommentary(parsed.commentary ?? "Maintaining pace—steady control."),
+    text: sanitizeCommentary(parsed.commentary ?? "Maintaining pace - steady control."),
     tags: Array.isArray(parsed.tags) ? parsed.tags : [],
     action: parsed.action,
     confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0.6,
@@ -203,3 +203,4 @@ export async function generateCommentary(
     return { ...mock, source: "mock" };
   }
 }
+

@@ -7,7 +7,7 @@ export default function CoachPage() {
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans">
       <header className="border-b border-zinc-800 bg-zinc-900/50 px-6 py-4">
         <h1 className="text-xl font-bold tracking-tight">
-          Coach / Commentary Â· UtraHacks
+          Coach / Commentary - UtraHacks
         </h1>
         <p className="text-sm text-zinc-500 mt-0.5">
           Live commentary playback for robotics runs
@@ -20,3 +20,4 @@ export default function CoachPage() {
     </div>
   );
 }
+
