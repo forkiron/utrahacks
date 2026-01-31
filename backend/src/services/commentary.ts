@@ -9,24 +9,29 @@ export interface CommentaryResult {
   source: "mock" | "gemini";
   action?: string;
   confidence?: number;
+  latencyMs?: number;
+}
+
+export interface CommentaryContext {
+  allowGemini: boolean;
+  lastCommentaryHash?: string;
 }
 
 const GEMINI_PROMPT = `You are an Olympic-style robotics commentator.
-Given a single frame from a robotics run, return JSON with:
+Given a single frame from a robotics run, return JSON only:
 {
-  "action": "short verb phrase for what the robot is doing",
-  "commentary": "ONE sentence, 12-18 words, energetic but not cheesy",
-  "confidence": 0-1 number,
-  "tags": ["short", "tags"]
+  "action": "short phrase of what robot is doing",
+  "commentary": "ONE sentence, 12–18 words, energetic but grounded, includes micro-advice if possible",
+  "confidence": 0.0-1.0,
+  "tags": ["turning","approaching_obstacle","stable","drifting","line_lost","recovery",...]
 }
-If uncertain, use probabilistic language like "looks like" or "seems to".
-Return JSON only.`;
+If uncertain, use "looks like" or "seems". Include micro-advice when possible ("slow down", "tighten turn", "hold center"). Do NOT invent details you cannot see. Return JSON only.`;
 
 const GENERIC_LINES = [
-  "Maintaining pace - steady control through this section.",
-  "Careful here - small adjustments will keep you centered.",
-  "Smooth segment - holding a consistent line and pace.",
-  "Controlled movement - nice balance and steady correction.",
+  "Holding steady—nice control through this stretch.",
+  "Careful here—small adjustments will keep you centered.",
+  "Smooth segment—holding a consistent line and pace.",
+  "Controlled movement—nice balance and steady correction.",
 ];
 
 const DRIFT_LEFT_LINES = [
@@ -57,10 +62,6 @@ function sanitizeCommentary(text: string): string {
   return words.slice(0, 18).join(" ").replace(/[.!?]$/, "") + ".";
 }
 
-function pickByHash(options: string[], seed: string): string {
-  const n = parseInt(seed.slice(0, 8), 16);
-  return options[n % options.length] ?? options[0];
-}
 
 async function getFrameStats(buffer: Buffer) {
   const resized = await sharp(buffer)
@@ -111,8 +112,23 @@ async function getFrameStats(buffer: Buffer) {
   };
 }
 
+function pickLineAvoidingHash(
+  options: string[],
+  seed: string,
+  avoidHash?: string
+): string {
+  for (let i = 0; i < options.length; i++) {
+    const line = options[(parseInt(seed.slice(0, 8), 16) + i) % options.length];
+    if (!avoidHash || crypto.createHash("sha256").update(line).digest("hex") !== avoidHash) {
+      return line ?? options[0];
+    }
+  }
+  return options[0] ?? "";
+}
+
 async function generateMockCommentary(
-  imageBuffer: Buffer
+  imageBuffer: Buffer,
+  lastCommentaryHash?: string
 ): Promise<Omit<CommentaryResult, "source">> {
   const detections = await runObjectDetection([imageBuffer]);
   const tags = Array.from(new Set(detections.map((d) => d.label)));
@@ -121,25 +137,28 @@ async function generateMockCommentary(
 
   let action = "steady";
   let line: string;
+  const obstacleLike = tags.some(
+    (l) => l === "lidar" || l === "sensor" || l === "camera"
+  );
 
   if (stats.bottomMean < 60) {
     action = "line_weak";
-    line = pickByHash(LINE_WEAK_LINES, hash);
+    line = pickLineAvoidingHash(LINE_WEAK_LINES, hash, lastCommentaryHash);
   } else if (stats.leftMean + 12 < stats.rightMean) {
     action = "drifting_left";
-    line = pickByHash(DRIFT_LEFT_LINES, hash);
+    line = pickLineAvoidingHash(DRIFT_LEFT_LINES, hash, lastCommentaryHash);
   } else if (stats.rightMean + 12 < stats.leftMean) {
     action = "drifting_right";
-    line = pickByHash(DRIFT_RIGHT_LINES, hash);
-  } else if (tags.includes("lidar") || tags.includes("sensor")) {
+    line = pickLineAvoidingHash(DRIFT_RIGHT_LINES, hash, lastCommentaryHash);
+  } else if (obstacleLike || stats.variance > 1200) {
     action = "approaching_obstacle";
-    line = pickByHash(OBSTACLE_LINES, hash);
+    line = pickLineAvoidingHash(OBSTACLE_LINES, hash, lastCommentaryHash);
   } else if (stats.variance > 900) {
     action = "turning";
-    line = "Clean turn - good correction back toward the line.";
+    line = "Quick adjustment—stay centered and keep the turns smooth.";
   } else {
-    action = "steady";
-    line = pickByHash(GENERIC_LINES, hash);
+    action = "stable";
+    line = pickLineAvoidingHash(GENERIC_LINES, hash, lastCommentaryHash);
   }
 
   return {
@@ -164,21 +183,38 @@ async function generateGeminiCommentary(
   };
 
   const result = await model.generateContent([GEMINI_PROMPT, imagePart]);
-  const text = result.response.text();
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  const rawText = result.response.text();
+  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
-    throw new Error("Gemini returned non-JSON");
+    return {
+      text: sanitizeCommentary("Holding steady—nice control through this stretch."),
+      tags: [],
+      action: "steady",
+      confidence: 0.5,
+    };
   }
 
-  const parsed = JSON.parse(jsonMatch[0]) as {
+  let parsed: {
     action?: string;
     commentary?: string;
     confidence?: number;
     tags?: string[];
   };
+  try {
+    parsed = JSON.parse(jsonMatch[0]) as typeof parsed;
+  } catch {
+    return {
+      text: sanitizeCommentary("Maintaining pace—steady control."),
+      tags: [],
+      action: "steady",
+      confidence: 0.5,
+    };
+  }
 
   return {
-    text: sanitizeCommentary(parsed.commentary ?? "Maintaining pace - steady control."),
+    text: sanitizeCommentary(
+      parsed.commentary ?? "Maintaining pace—steady control."
+    ),
     tags: Array.isArray(parsed.tags) ? parsed.tags : [],
     action: parsed.action,
     confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0.6,
@@ -186,21 +222,40 @@ async function generateGeminiCommentary(
 }
 
 export async function generateCommentary(
-  imageBuffer: Buffer
+  imageBuffer: Buffer,
+  context?: CommentaryContext
 ): Promise<CommentaryResult> {
   const apiKey = process.env.GEMINI_API_KEY ?? "";
-  if (!apiKey) {
-    const mock = await generateMockCommentary(imageBuffer);
-    return { ...mock, source: "mock" };
+  const allowGemini =
+    Boolean(context?.allowGemini) && Boolean(apiKey);
+  const lastHash = context?.lastCommentaryHash;
+
+  const t0 = Date.now();
+
+  if (!allowGemini) {
+    const mock = await generateMockCommentary(imageBuffer, lastHash);
+    return {
+      ...mock,
+      source: "mock",
+      latencyMs: Date.now() - t0,
+    };
   }
 
   try {
     const gemini = await generateGeminiCommentary(imageBuffer, apiKey);
-    return { ...gemini, source: "gemini" };
+    return {
+      ...gemini,
+      source: "gemini",
+      latencyMs: Date.now() - t0,
+    };
   } catch (err) {
     console.error("Gemini commentary error, falling back to mock:", err);
-    const mock = await generateMockCommentary(imageBuffer);
-    return { ...mock, source: "mock" };
+    const mock = await generateMockCommentary(imageBuffer, lastHash);
+    return {
+      ...mock,
+      source: "mock",
+      latencyMs: Date.now() - t0,
+    };
   }
 }
 
