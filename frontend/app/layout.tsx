@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Robot Inspection · UtraHacks",
+  title: "Robot Inspection - UtraHacks",
   description: "AI-powered compliance verification for robotics competitions",
 };
 
@@ -36,3 +36,4 @@ export default function RootLayout({
     </html>
   );
 }
+
