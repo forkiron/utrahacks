@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# UtraHacks · Robot Inspection
 
-## Getting Started
+AI-powered compliance verification for robotics competitions. Judges capture photos, the system detects components via CV + Gemini, runs deterministic rules, and writes results to Solana.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Inspection flow**: Capture 3–5 photos → Analyze (CV + Gemini) → Pass/Fail → Finalize on Solana
+- **CV layer**: Object detection (motor, camera, lidar, control board, battery, sensor) with mock/heuristic for demo; swap in YOLOv8 for production
+- **Gemini**: Component identification from cropped images
+- **Rule engine**: Deterministic anti-cheat (e.g. max 2 motors, no cameras)
+- **Evidence packaging**: Hashed bundle for trust
+- **Solana**: Memo program for immutable inspection records
+- **Verification dashboard**: Look up any inspection by ID
+
+## Structure
+
+```
+├── frontend/
+│   ├── app/
+│   │   ├── inspect/        # Inspection flow
+│   │   │   ├── CameraCapture.tsx
+│   │   │   ├── ImagePreview.tsx
+│   │   │   ├── AnalysisResults.tsx
+│   │   │   └── FinalizeInspection.tsx
+│   │   └── verify/         # Verification dashboard
+│   └── ...
+├── backend/
+│   └── src/
+│       ├── routes/inspect.ts
+│       ├── services/
+│       │   ├── cvLayer.ts      # Object detection
+│       │   ├── gemini.ts       # Component decoding
+│       │   ├── ruleEngine.ts   # Rule evaluation
+│       │   ├── evidence.ts     # Evidence hashing
+│       │   ├── solana.ts       # On-chain write
+│       │   └── store.ts        # In-memory records
+│       └── ...
+└── package.json
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **Environment variables:**
+   ```bash
+   cp frontend/.env.example frontend/.env.local
+   cp backend/.env.example backend/.env
+   ```
 
-## Learn More
+   - **frontend/.env.local**: `NEXT_PUBLIC_API_URL=http://localhost:4000`
+   - **backend/.env**:
+     - `GEMINI_API_KEY` – for component identification (optional; falls back to mock)
+     - `SOLANA_RPC_URL` + `SOLANA_PRIVATE_KEY` – for on-chain writes (optional)
 
-To learn more about Next.js, take a look at the following resources:
+## Development
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# Terminal 1 – Frontend
+npm run dev:frontend
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Terminal 2 – Backend
+npm run dev:backend
+```
 
-## Deploy on Vercel
+Open [http://localhost:3000](http://localhost:3000) → Start Inspection.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Command | Description |
+|---------|-------------|
+| `npm run dev:frontend` | Next.js dev server |
+| `npm run dev:backend` | Express + hot reload |
+| `npm run build:frontend` | Build Next.js |
+| `npm run build:backend` | Compile backend |
+| `npm run build` | Build all |
+# utrahacks
