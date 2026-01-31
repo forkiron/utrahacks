@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* Wallet adapter modal overrides for dark theme */
+.wallet-adapter-button {
+  background: rgb(245 158 11) !important;
+  color: rgb(3 7 18) !important;
+  font-weight: 600 !important;
+}
+.wallet-adapter-button:hover {
+  background: rgb(251 191 36) !important;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
