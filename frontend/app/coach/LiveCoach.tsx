@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const CHECK_INTERVAL_MS = 1000;
 const MIN_SEND_INTERVAL_MS = 5000;
+const FORCE_SEND_INTERVAL_MS = 12000;
 const MIN_SPEAK_INTERVAL_MS = 3000;
 const AUDIO_QUEUE_LIMIT = 3;
 const HASH_SIZE = 16;
@@ -180,7 +181,9 @@ export default function LiveCoach() {
     );
     lastFrameDataRef.current = imageData.data.slice();
 
-    if (changeScore < PIXEL_DIFF_THRESHOLD) return;
+    const sceneChanged = changeScore >= PIXEL_DIFF_THRESHOLD;
+    const forceSend = elapsed >= FORCE_SEND_INTERVAL_MS;
+    if (!sceneChanged && !forceSend) return;
 
     lastSentRef.current = now;
     pendingRef.current = true;
