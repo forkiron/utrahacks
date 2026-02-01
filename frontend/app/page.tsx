@@ -46,10 +46,10 @@ export default function Home() {
         <section className="min-h-screen flex flex-col items-center justify-start px-6 pt-24 pb-16">
           <div className="max-w-4xl mx-auto text-center w-full">
             <h1 className="font-serif text-5xl md:text-7xl font-medium italic text-white tracking-tight leading-[1.1] drop-shadow-sm">
-              AI-powered judging and analysis for robotics
+              Robot compliance verification for competitions
             </h1>
             <p className="text-lg md:text-xl text-white/90 mt-6 max-w-2xl mx-auto leading-relaxed font-sans">
-              Inspect and verify robots in minutes, not months.
+              Photo-based inspections with pass/fail and on-chain proof.
             </p>
             <Link
               href="/inspect"
