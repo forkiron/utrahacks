@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { writeFileSync, unlinkSync, existsSync, mkdirSync, readFileSync } from "fs";
+import { writeFileSync, unlinkSync, existsSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { fileURLToPath } from "url";
@@ -11,8 +11,6 @@ import { runObjectDetection } from "../services/cvLayer.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // backend/src/routes -> backend/src -> backend -> repo root (3 levels)
 const PROJECT_ROOT = resolve(__dirname, "..", "..", "..");
-/** Stored inspection images: backend/data/inspections/<inspection_id>/0.jpg, 1.jpg, ... */
-const DATA_DIR = resolve(__dirname, "..", "..", "data", "inspections");
 import { decodeComponents } from "../services/gemini.js";
 import { evaluateRules } from "../services/ruleEngine.js";
 import {
@@ -23,7 +21,7 @@ import {
 } from "../services/evidence.js";
 import { writeInspectionToChain } from "../services/solana.js";
 import { verifyWalletSignature } from "../services/auth.js";
-import { saveInspection, getInspection, getAllInspections } from "../services/store.js";
+import { saveInspection, getInspection, getAllInspections, getInspectionImage } from "../services/store.js";
 import type { GeminiComponent } from "../types.js";
 
 const router = Router();
@@ -203,17 +201,9 @@ router.post(
       Math.floor(Math.random() * 10000)
     ).padStart(4, "0")}`;
 
-    // Store evidence images alongside inspection
+    // Images will be stored in MongoDB along with the inspection record
     const imageCount = images.length;
-    if (imageCount > 0) {
-      const inspectionDir = join(DATA_DIR, inspectionId);
-      mkdirSync(inspectionDir, { recursive: true });
-      images.forEach((file, i) => {
-        if (file.buffer) {
-          writeFileSync(join(inspectionDir, `${i}.jpg`), file.buffer);
-        }
-      });
-    }
+    const imageBuffers = images.map((file) => file.buffer).filter((b): b is Buffer => !!b);
 
     const bundle = createEvidenceBundle(
       inspectionId,
@@ -266,7 +256,8 @@ router.post(
       image_count: imageCount,
       timestamp: Math.floor(Date.now() / 1000),
     };
-    saveInspection(record);
+    // Save to MongoDB (with images)
+    await saveInspection(record, imageBuffers);
 
     res.json({
       inspection_id: inspectionId,
@@ -283,42 +274,50 @@ router.post(
 });
 
 /** List all saved inspections (newest first) for bot security tracking / verified list. */
-router.get("/list", (req, res) => {
-  const list = getAllInspections();
-  res.json(list);
+router.get("/list", async (req, res) => {
+  try {
+    const list = await getAllInspections();
+    res.json(list);
+  } catch (err) {
+    console.error("List error:", err);
+    res.status(500).json({ error: "Failed to list inspections" });
+  }
 });
 
-router.get("/verify/:id", (req, res) => {
-  const record = getInspection(req.params.id);
-  if (!record) {
-    return res.status(404).json({ error: "Inspection not found" });
+router.get("/verify/:id", async (req, res) => {
+  try {
+    const record = await getInspection(req.params.id);
+    if (!record) {
+      return res.status(404).json({ error: "Inspection not found" });
+    }
+    res.json(record);
+  } catch (err) {
+    console.error("Verify error:", err);
+    res.status(500).json({ error: "Failed to verify inspection" });
   }
-  res.json(record);
 });
 
 /** Serve stored evidence image for an inspection (0-indexed). */
-router.get("/evidence/:inspectionId/:index", (req, res) => {
-  const { inspectionId, index } = req.params;
-  const i = parseInt(index, 10);
-  if (!inspectionId || !Number.isFinite(i) || i < 0) {
-    return res.status(400).send("Invalid inspection id or index");
+router.get("/evidence/:inspectionId/:index", async (req, res) => {
+  try {
+    const { inspectionId, index } = req.params;
+    const i = parseInt(index, 10);
+    if (!inspectionId || !Number.isFinite(i) || i < 0) {
+      return res.status(400).send("Invalid inspection id or index");
+    }
+    
+    const imageBuffer = await getInspectionImage(inspectionId, i);
+    if (!imageBuffer) {
+      return res.status(404).send("Image not found");
+    }
+    
+    res.setHeader("Content-Type", "image/jpeg");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.send(imageBuffer);
+  } catch (err) {
+    console.error("Evidence error:", err);
+    res.status(500).send("Failed to retrieve image");
   }
-  const record = getInspection(inspectionId);
-  if (!record) {
-    return res.status(404).send("Inspection not found");
-  }
-  const count = record.image_count ?? 0;
-  if (i >= count) {
-    return res.status(404).send("Image not found");
-  }
-  const path = join(DATA_DIR, inspectionId, `${i}.jpg`);
-  if (!existsSync(path)) {
-    return res.status(404).send("Image file not found");
-  }
-  const buf = readFileSync(path);
-  res.setHeader("Content-Type", "image/jpeg");
-  res.setHeader("Cache-Control", "public, max-age=86400");
-  res.send(buf);
 });
 
 export default router;
