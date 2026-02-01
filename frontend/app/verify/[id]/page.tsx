@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import AppNavbar from "../../components/AppNavbar";
+import ProofVisualization from "../../components/ProofVisualization";
 
 interface InspectionRecord {
   inspection_id: string;
@@ -14,6 +15,7 @@ interface InspectionRecord {
   evidence_hash: string;
   judge_wallet?: string;
   solana_tx?: string;
+  encrypted_on_chain?: boolean;
   timestamp: number;
 }
 
@@ -127,24 +129,13 @@ export default function VerifyPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
-          <p className="text-sm font-medium text-zinc-400 mb-2">
-            On-chain proof
-          </p>
-          <p className="font-mono text-xs break-all text-zinc-500">
-            {record.evidence_hash}
-          </p>
-          {record.solana_tx && (
-            <a
-              href={`https://explorer.solana.com/tx/${record.solana_tx}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-amber-400 hover:underline text-sm mt-2 block"
-            >
-              View transaction on Solana Explorer →
-            </a>
-          )}
-        </div>
+        <ProofVisualization
+          evidenceHash={record.evidence_hash}
+          solanaTx={record.solana_tx}
+          encryptedOnChain={record.encrypted_on_chain}
+          inspectionId={record.inspection_id}
+          compact
+        />
       </main>
     </div>
   );

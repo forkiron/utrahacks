@@ -194,14 +194,15 @@ router.post("/finalize", upload.none(), async (req, res) => {
     );
     const evidenceHash = getBundleHash(bundle);
 
-    const solanaTx = await writeInspectionToChain(
-      inspectionId,
-      robotId ?? "UNKNOWN",
-      result ?? "PASS",
-      evidenceHash,
-      process.env.SOLANA_RPC_URL ?? "",
-      process.env.SOLANA_PRIVATE_KEY
-    );
+    const { txSignature: solanaTxSig, encrypted: encryptedOnChain } =
+      await writeInspectionToChain(
+        inspectionId,
+        robotId ?? "UNKNOWN",
+        result ?? "PASS",
+        evidenceHash,
+        process.env.SOLANA_RPC_URL ?? "",
+        process.env.SOLANA_PRIVATE_KEY
+      );
 
     const record = {
       inspection_id: inspectionId,
@@ -213,7 +214,8 @@ router.post("/finalize", upload.none(), async (req, res) => {
         : []) as GeminiComponent[],
       evidence_hash: evidenceHash,
       judge_wallet: judgeWallet,
-      solana_tx: solanaTx ?? undefined,
+      solana_tx: solanaTxSig ?? undefined,
+      encrypted_on_chain: encryptedOnChain,
       timestamp: Math.floor(Date.now() / 1000),
     };
     saveInspection(record);
@@ -221,7 +223,8 @@ router.post("/finalize", upload.none(), async (req, res) => {
     res.json({
       inspection_id: inspectionId,
       evidence_hash: evidenceHash,
-      solana_tx: solanaTx,
+      solana_tx: solanaTxSig,
+      encrypted_on_chain: encryptedOnChain,
       qr_data: `https://inspect.utrahacks.dev/verify/${inspectionId}`,
     });
   } catch (err) {

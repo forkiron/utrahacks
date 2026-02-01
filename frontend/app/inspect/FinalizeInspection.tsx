@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { AnalysisResult, CapturedImage } from "./page";
+import ProofVisualization from "../components/ProofVisualization";
 
 interface FinalizeInspectionProps {
   robotId: string;
@@ -20,6 +21,7 @@ export default function FinalizeInspection({
     inspection_id: string;
     evidence_hash: string;
     solana_tx: string | null;
+    encrypted_on_chain?: boolean;
     qr_data: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -59,29 +61,23 @@ export default function FinalizeInspection({
 
   if (result) {
     return (
-      <div className="space-y-6 text-center font-sans">
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-8">
+      <div className="space-y-6 font-sans">
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-8 text-center">
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Inspection finalized</p>
           <p className="text-xl font-mono font-semibold mt-2 text-zinc-100">
             {result.inspection_id}
           </p>
-          <p className="text-sm text-zinc-500 mt-1">
-            Evidence hash: {result.evidence_hash.slice(0, 18)}…
-          </p>
-          {result.solana_tx && (
-            <a
-              href={`https://explorer.solana.com/tx/${result.solana_tx}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-zinc-300 hover:text-white hover:underline text-sm mt-2 inline-block"
-            >
-              View on Solana Explorer →
-            </a>
-          )}
           <p className="text-xs text-zinc-500 mt-4">
             Verification: /verify/{result.inspection_id}
           </p>
         </div>
+
+        <ProofVisualization
+          evidenceHash={result.evidence_hash}
+          solanaTx={result.solana_tx}
+          encryptedOnChain={result.encrypted_on_chain}
+          inspectionId={result.inspection_id}
+        />
 
         <button
           onClick={onDone}

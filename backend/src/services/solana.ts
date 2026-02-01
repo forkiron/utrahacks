@@ -6,8 +6,16 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import bs58 from "bs58";
+import { encryptMemoPayload, isEncryptionConfigured } from "./encryption.js";
 
 const MEMO_PROGRAM_ID = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
+
+export type OnChainPayload = {
+  inspectionId: string;
+  robotId: string;
+  result: "PASS" | "FAIL";
+  evidenceHash: string;
+};
 
 export async function writeInspectionToChain(
   inspectionId: string,
@@ -16,14 +24,29 @@ export async function writeInspectionToChain(
   evidenceHash: string,
   rpcUrl: string,
   privateKeyBase58?: string
-): Promise<string | null> {
+): Promise<{ txSignature: string | null; encrypted: boolean }> {
   if (!rpcUrl || !privateKeyBase58) {
-    return null;
+    return { txSignature: null, encrypted: false };
   }
 
   try {
     const connection = new Connection(rpcUrl);
-    const memo = `UTRAHACKS:${inspectionId}:${robotId}:${result}:${evidenceHash}`;
+    let memo: string;
+    let encrypted = false;
+
+    if (isEncryptionConfigured()) {
+      const payload: OnChainPayload = {
+        inspectionId,
+        robotId,
+        result,
+        evidenceHash,
+      };
+      const ciphertext = encryptMemoPayload(JSON.stringify(payload));
+      memo = `UTRAHACKS:ENC:${ciphertext}`;
+      encrypted = true;
+    } else {
+      memo = `UTRAHACKS:${inspectionId}:${robotId}:${result}:${evidenceHash}`;
+    }
 
     const secret = bs58.decode(privateKeyBase58);
     const signer = Keypair.fromSecretKey(secret);
@@ -53,9 +76,9 @@ export async function writeInspectionToChain(
       { signature: sig, blockhash, lastValidBlockHeight },
       "confirmed"
     );
-    return sig;
+    return { txSignature: sig, encrypted };
   } catch (err) {
     console.error("Solana write error:", err);
-    return null;
+    return { txSignature: null, encrypted: false };
   }
 }
