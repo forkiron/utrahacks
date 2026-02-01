@@ -13,7 +13,7 @@ export default function Home() {
           className="absolute inset-0 w-full h-full object-cover scale-105 filter-[blur(12px)_brightness(0.3)]"
           src="/landing.mov"
         />
-        <div className="absolute inset-0 bg-black/" aria-hidden />
+        <div className="absolute inset-0 bg-black/65" aria-hidden />
       </div>
 
       {/* Navbar: Sentinel + Try now only */}
@@ -60,12 +60,12 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* Demo section: Placeholder dashboard */}
+        {/* Demo section: Placeholder dashboard - aligned with header */}
         <section
           id="demo"
-          className="relative min-h-[90vh] flex items-end justify-center pt-32 pb-20 px-4"
+          className="relative min-h-[90vh] flex items-end justify-center pt-32 pb-20"
         >
-          <div className="w-full max-w-7xl">
+          <div className="w-full max-w-6xl mx-auto px-6">
             <div className="rounded-xl border border-white/20 overflow-hidden shadow-2xl bg-white/5 backdrop-blur">
               {/* Dashboard header */}
               <div className="border-b border-white/10 px-6 py-4 flex items-center gap-2">
