@@ -224,7 +224,7 @@ export default function LiveCoach() {
           const audioBlob = await ttsRes.blob();
           const url = URL.createObjectURL(audioBlob);
           enqueueAudio(url);
-        } else if (ttsRes.status === 400) {
+        } else if (ttsRes.status === 400 || ttsRes.status === 501) {
           setElevenLabsEnabled(false);
           setStatus("ElevenLabs not configured. Text-only commentary.");
         }
@@ -290,6 +290,8 @@ export default function LiveCoach() {
           const introUrl = URL.createObjectURL(introBlob);
           audioQueueRef.current.unshift(introUrl);
           if (!playingRef.current) playNext();
+        } else if (introRes.status === 501) {
+          setElevenLabsEnabled(false);
         }
       } catch {
         // Intro audio optional; continue without it
