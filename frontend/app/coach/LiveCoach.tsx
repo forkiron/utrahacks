@@ -275,12 +275,12 @@ export default function LiveCoach() {
       sessionStartRef.current = Date.now();
       lastSentRef.current = 0;
       lastFrameDataRef.current = null;
-      setStarted(true);
       setEvents([]);
       setStatus("");
       setGeminiEnabled(null);
       setLastLatencyMs(null);
 
+      // Queue intro first and start playing it before enabling live commentary
       try {
         const introRes = await fetch(`${apiUrl}/api/coach/intro/audio`, {
           method: "GET",
@@ -288,13 +288,19 @@ export default function LiveCoach() {
         if (introRes.ok) {
           const introBlob = await introRes.blob();
           const introUrl = URL.createObjectURL(introBlob);
-          audioQueueRef.current.unshift(introUrl);
-          if (!playingRef.current) playNext();
+          audioQueueRef.current.forEach((url) => URL.revokeObjectURL(url));
+          audioQueueRef.current = [introUrl];
+          lastSpokenRef.current = 0;
         } else if (introRes.status === 501) {
           setElevenLabsEnabled(false);
         }
       } catch {
         // Intro audio optional; continue without it
+      }
+
+      setStarted(true);
+      if (audioQueueRef.current.length > 0 && !playingRef.current) {
+        playNext();
       }
     } catch (err) {
       console.error(err);
@@ -312,6 +318,13 @@ export default function LiveCoach() {
       clearInterval(checkIntervalRef.current);
       checkIntervalRef.current = null;
     }
+    // Stop current audio and clear queue
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.removeAttribute("src");
+      audioRef.current.load();
+    }
+    playingRef.current = false;
     audioQueueRef.current.forEach((url) => URL.revokeObjectURL(url));
     audioQueueRef.current = [];
   }, [stream]);
