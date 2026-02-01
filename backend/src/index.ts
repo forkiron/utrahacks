@@ -1,8 +1,16 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+import { dirname, resolve } from "path";
+import { fileURLToPath } from "url";
 import cors from "cors";
 import express from "express";
 import inspectRouter from "./routes/inspect.js";
 import coachRouter from "./routes/coach.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const BACKEND_ROOT = resolve(__dirname, "..");
+const REPO_ROOT = resolve(BACKEND_ROOT, "..");
+dotenv.config({ path: resolve(BACKEND_ROOT, ".env") });
+dotenv.config({ path: resolve(REPO_ROOT, ".env") });
 
 const app = express();
 const PORT = process.env.PORT ?? 4000;

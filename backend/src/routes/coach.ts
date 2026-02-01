@@ -73,9 +73,14 @@ router.post("/frame", upload.single("image"), async (req, res) => {
     const sessionId = typeof req.body.sessionId === "string" ? req.body.sessionId : "";
     const state = getOrCreateSession(sessionId || crypto.randomUUID());
     const now = Date.now();
-    const allowGemini =
-      process.env.GEMINI_API_KEY &&
-      now - state.lastGeminiCall >= GEMINI_COOLDOWN_MS;
+    const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY);
+    const offCooldown = now - state.lastGeminiCall >= GEMINI_COOLDOWN_MS;
+    const allowGemini = hasGeminiKey && offCooldown;
+    const geminiDisabledReason = !hasGeminiKey
+      ? "missing_api_key"
+      : !offCooldown
+        ? "cooldown"
+        : null;
 
     const result = await generateCommentary(file.buffer, {
       allowGemini: Boolean(allowGemini),
@@ -100,6 +105,8 @@ router.post("/frame", upload.single("image"), async (req, res) => {
         source: result.source,
         latencyMs: result.latencyMs ?? 0,
         tags: result.tags,
+        geminiAllowed: allowGemini,
+        geminiDisabledReason,
       },
     });
   } catch (err) {

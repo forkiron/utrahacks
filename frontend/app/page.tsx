@@ -19,7 +19,7 @@ export default function Home() {
       {/* Navbar: Sentinel + Try now */}
       <header className="sticky top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <span className="font-[cursive] text-white text-2xl tracking-tight">
+          <span className="font-serif italic text-white text-2xl tracking-tight">
             Sentinel
           </span>
           <Link
