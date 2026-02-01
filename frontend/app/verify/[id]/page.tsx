@@ -130,7 +130,11 @@ export default function VerifyPage() {
             <p className="text-sm font-medium text-zinc-400 mb-2">
               Finalized by
             </p>
-            <p className="font-mono text-xs break-all">{record.judge_wallet}</p>
+            <p className="font-mono text-xs break-all">
+              {record.judge_wallet === "demo-placeholder"
+                ? "Utrahacks Wallet"
+                : record.judge_wallet}
+            </p>
           </div>
         )}
 

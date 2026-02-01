@@ -3,7 +3,6 @@
 import { useState } from "react";
 import AppNavbar from "../components/AppNavbar";
 import CameraCapture from "./CameraCapture";
-import ImagePreview from "./ImagePreview";
 import AnalysisResults from "./AnalysisResults";
 import FinalizeInspection from "./FinalizeInspection";
 import RecentScansQueue from "../components/RecentScansQueue";
@@ -47,16 +46,11 @@ export default function InspectPage() {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [robotId, setRobotId] = useState("");
 
-  const onCaptureComplete = (captured: CapturedImage[]) => {
-    setImages(captured);
-    setStep("preview");
-  };
-
-  const onAnalyze = async () => {
+  const runAnalyze = async (captured: CapturedImage[]) => {
     setStep("analyzing");
     const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
     const formData = new FormData();
-    for (const img of images) {
+    for (const img of captured) {
       formData.append("images", img.blob, `capture-${img.id}.jpg`);
     }
     const res = await fetch(`${apiUrl}/api/inspect/analyze`, {
@@ -65,7 +59,12 @@ export default function InspectPage() {
     });
     const data = await res.json();
     setAnalysis(data);
+    setImages(captured);
     setStep("results");
+  };
+
+  const onCaptureComplete = (captured: CapturedImage[]) => {
+    runAnalyze(captured);
   };
 
   const onFinalize = () => {
@@ -83,13 +82,6 @@ export default function InspectPage() {
             <RecentScansQueue />
           </>
         )}
-        {step === "preview" && (
-          <ImagePreview
-            images={images}
-            onBack={() => setStep("capture")}
-            onAnalyze={onAnalyze}
-          />
-        )}
         {step === "analyzing" && (
           <div className="flex flex-col items-center justify-center py-24 gap-6 font-sans">
             <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin" />
@@ -102,7 +94,7 @@ export default function InspectPage() {
           <AnalysisResults
             analysis={analysis}
             images={images}
-            onBack={() => setStep("preview")}
+            onBack={() => setStep("capture")}
             onFinalize={onFinalize}
             robotId={robotId}
             setRobotId={setRobotId}

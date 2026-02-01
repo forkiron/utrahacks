@@ -202,7 +202,7 @@ router.post(
       }
     }
 
-    const judgeWallet = demoBypass ? "demo-placeholder" : String(payload.wallet_address ?? "");
+    const judgeWallet = demoBypass ? "Utrahacks Wallet" : String(payload.wallet_address ?? "");
 
     const imageHash = (payload.image_hash as string) ?? "0x0";
     const analysisHash =

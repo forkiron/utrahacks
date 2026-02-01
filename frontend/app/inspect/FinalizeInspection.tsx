@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { AnalysisResult, CapturedImage } from "./page";
 import ProofVisualization from "../components/ProofVisualization";
 
@@ -17,7 +17,7 @@ export default function FinalizeInspection({
   images,
   onDone,
 }: FinalizeInspectionProps) {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<{
     inspection_id: string;
     evidence_hash: string;
@@ -27,6 +27,7 @@ export default function FinalizeInspection({
     qr_data: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const hasStarted = useRef(false);
 
   const handleFinalize = async () => {
     setLoading(true);
@@ -64,6 +65,13 @@ export default function FinalizeInspection({
     }
   };
 
+  // Skip warning — go straight to finalizing on mount
+  useEffect(() => {
+    if (hasStarted.current || result != null) return;
+    hasStarted.current = true;
+    handleFinalize();
+  }, []);
+
   if (result) {
     return (
       <div className="space-y-6 font-sans">
@@ -96,30 +104,27 @@ export default function FinalizeInspection({
 
   return (
     <div className="space-y-6 font-sans">
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-        Finalize this inspection to create an immutable on-chain record.
-      </p>
+      {loading && (
+        <div className="flex flex-col items-center justify-center py-12 gap-4">
+          <div className="w-12 h-12 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+          <p className="text-sm text-zinc-400">Finalizing on-chain…</p>
+        </div>
+      )}
 
       {error && (
-        <div className="rounded-xl bg-red-500/10 border border-white/20 p-4 text-red-400 text-sm backdrop-blur">
+        <div className="rounded-xl bg-red-500/10 border border-white/20 p-4 text-red-400 text-sm">
           {error}
         </div>
       )}
 
-      <button
-        onClick={handleFinalize}
-        disabled={loading}
-        className="w-full py-4 bg-white text-zinc-950 font-semibold rounded-xl hover:bg-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
-      >
-        {loading ? "Finalizing…" : "Finalize Inspection"}
-      </button>
-
-      <button
-        onClick={onDone}
-        className="w-full py-2 text-zinc-500 hover:text-zinc-400 text-sm"
-      >
-        Cancel
-      </button>
+      {error && (
+        <button
+          onClick={onDone}
+          className="w-full py-2 text-zinc-500 hover:text-zinc-400 text-sm"
+        >
+          Back
+        </button>
+      )}
     </div>
   );
 }
