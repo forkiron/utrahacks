@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import AppNavbar from "../components/AppNavbar";
 
 export default function VerifyLandingPage() {
   const [id, setId] = useState("");
@@ -13,7 +14,9 @@ export default function VerifyLandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans">
+      <AppNavbar />
+      <div className="flex flex-col items-center justify-center px-6 py-16">
       <h1 className="text-2xl font-bold">Verify Inspection</h1>
       <p className="text-zinc-500 text-sm mt-1">
         Enter Inspection ID to view results and on-chain proof
@@ -33,6 +36,7 @@ export default function VerifyLandingPage() {
           Look up
         </button>
       </form>
+      </div>
     </div>
   );
 }

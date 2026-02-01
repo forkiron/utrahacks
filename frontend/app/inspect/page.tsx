@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AppNavbar from "../components/AppNavbar";
 import CameraCapture from "./CameraCapture";
 import ImagePreview from "./ImagePreview";
 import AnalysisResults from "./AnalysisResults";
@@ -72,14 +73,7 @@ export default function InspectPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans">
-      <header className="border-b border-zinc-800 bg-zinc-900/50 px-6 py-4">
-        <h1 className="text-xl font-bold tracking-tight">
-          Robot Inspection - UtraHacks
-        </h1>
-        <p className="text-sm text-zinc-500 mt-0.5">
-          AI-powered compliance verification for robotics competitions
-        </p>
-      </header>
+      <AppNavbar />
 
       <main className="max-w-2xl mx-auto px-6 py-8">
         {step === "capture" && <CameraCapture onComplete={onCaptureComplete} />}

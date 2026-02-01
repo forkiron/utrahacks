@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import AppNavbar from "../../components/AppNavbar";
 
 interface InspectionRecord {
   inspection_id: string;
@@ -62,12 +63,7 @@ export default function VerifyPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans">
-      <header className="border-b border-zinc-800 bg-zinc-900/50 px-6 py-4">
-        <Link href="/" className="text-amber-400 hover:underline text-sm">
-          ← UtraHacks
-        </Link>
-        <h1 className="text-xl font-bold mt-2">Verification</h1>
-      </header>
+      <AppNavbar />
 
       <main className="max-w-xl mx-auto px-6 py-8 space-y-6">
         <div
