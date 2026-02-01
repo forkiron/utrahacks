@@ -17,7 +17,7 @@ export interface CommentaryContext {
   lastCommentaryHash?: string;
 }
 
-const GEMINI_TIMEOUT_MS = 4000;
+const GEMINI_TIMEOUT_MS = 12000;
 const VALID_ACTIONS = new Set([
   "stable",
   "drifting_left",
@@ -31,9 +31,17 @@ const VALID_ACTIONS = new Set([
   "unknown",
 ]);
 
-const GEMINI_PROMPT = `Sports commentator for a robotics run. Return ONLY valid JSON, no other text:
-{"action":"stable|drifting_left|drifting_right|approaching_obstacle|line_lost|line_weak|climbing|stuck|recovery|unknown","commentary":"one sentence 9-16 words","confidence":0.0-1.0,"tags":["tag1","tag2"]}
-Phrase style: "Coming up on ___ — ___" | "Looks like ___ — ___" | "Nice ___ — ___" | "Oh, ___… but ___" | optional one-word pop: "WOW — ___". At most ONE word in CAPS. If unsure, say "looks like" or "seems". Describe ONLY what is plausible in the image; do not invent ramps, obstacles, or objects. One sentence, 9-16 words, end with . ! or ?`;
+const GEMINI_PROMPT = `You are a sports commentator for a robotics run. Look at the image and describe what the robot is doing in one short sentence (9-16 words). Vary your line based on what you see: line position, obstacles, speed, etc. Do not repeat the same generic phrase.
+
+Return exactly one JSON object with these keys only:
+- "action": one of stable, drifting_left, drifting_right, approaching_obstacle, line_lost, line_weak, climbing, stuck, recovery, unknown
+- "commentary": your one-sentence comment (e.g. "Looks like they're drifting left — tighten that turn." or "Nice and steady through this section.")
+- "confidence": number between 0.0 and 1.0
+- "tags": array of 0-3 short strings (e.g. "line", "obstacle", "curve")
+
+Example format: {"action":"stable","commentary":"Smooth and centered through here.","confidence":0.85,"tags":["line"]}
+
+Output only the JSON object, no other text or markdown.`;
 
 let genAISingleton: GoogleGenerativeAI | null = null;
 let modelSingleton: ReturnType<GoogleGenerativeAI["getGenerativeModel"]> | null = null;
@@ -41,7 +49,13 @@ let modelSingleton: ReturnType<GoogleGenerativeAI["getGenerativeModel"]> | null 
 function getModel(apiKey: string) {
   if (!modelSingleton) {
     genAISingleton = new GoogleGenerativeAI(apiKey);
-    modelSingleton = genAISingleton.getGenerativeModel({ model: "gemini-2.5-flash" });
+    modelSingleton = genAISingleton.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+        maxOutputTokens: 256,
+      },
+    });
   }
   return modelSingleton;
 }
@@ -220,7 +234,14 @@ async function generateMockCommentary(
   };
 }
 
-type GeminiParsed = { action?: string; commentary: string; confidence?: number; tags?: string[] };
+type GeminiParsed = {
+  action?: string;
+  commentary?: string;
+  comment?: string;
+  text?: string;
+  confidence?: number;
+  tags?: string[];
+};
 
 function parseGeminiJson(rawText: string): {
   action: string;
@@ -229,6 +250,8 @@ function parseGeminiJson(rawText: string): {
   tags: string[];
 } | null {
   const trimmed = rawText.trim();
+  if (!trimmed) return null;
+
   let parsed: GeminiParsed | null = null;
   try {
     parsed = JSON.parse(trimmed) as GeminiParsed;
@@ -238,18 +261,38 @@ function parseGeminiJson(rawText: string): {
       try {
         parsed = JSON.parse(block[0]) as GeminiParsed;
       } catch {
+        // Not JSON; if it looks like a single commentary line, use it
+        if (!trimmed.includes("{") && trimmed.length > 10 && trimmed.length < 200) {
+          return {
+            action: "unknown",
+            commentary: trimmed,
+            confidence: 0.6,
+            tags: [],
+          };
+        }
         return null;
       }
     }
   }
-  if (!parsed || typeof parsed.commentary !== "string") return null;
+
+  if (!parsed) return null;
+  const commentary =
+    typeof parsed.commentary === "string"
+      ? parsed.commentary
+      : typeof parsed.comment === "string"
+        ? parsed.comment
+        : typeof parsed.text === "string"
+          ? parsed.text
+          : null;
+  if (!commentary) return null;
+
   const action = VALID_ACTIONS.has(String(parsed.action)) ? String(parsed.action) : "unknown";
   const conf = parsed.confidence;
   const confidence = typeof conf === "number" ? Math.max(0, Math.min(1, conf)) : 0.6;
   const tags = Array.isArray(parsed.tags) ? (parsed.tags as unknown[]).filter((t: unknown) => typeof t === "string") as string[] : [];
   return {
     action,
-    commentary: parsed.commentary,
+    commentary,
     confidence,
     tags,
   };
@@ -277,9 +320,13 @@ async function generateGeminiCommentary(
   }
 
   const model = getModel(apiKey);
+  const resizedForGemini = await sharp(imageBuffer)
+    .resize(1024, 1024, { fit: "inside", withoutEnlargement: true })
+    .jpeg({ quality: 85 })
+    .toBuffer();
   const imagePart = {
     inlineData: {
-      data: imageBuffer.toString("base64"),
+      data: resizedForGemini.toString("base64"),
       mimeType: "image/jpeg",
     },
   };
@@ -291,10 +338,10 @@ async function generateGeminiCommentary(
   let rawText: string;
   try {
     const result = await Promise.race([
-      model.generateContent([GEMINI_PROMPT, imagePart]).then((r) => r.response.text()),
+      model.generateContent([GEMINI_PROMPT, imagePart]).then((r) => r.response.text() ?? ""),
       timeoutPromise,
     ]);
-    rawText = result as string;
+    rawText = (result as string)?.trim() ?? "";
   } catch (err) {
     throw err;
   }
