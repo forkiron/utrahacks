@@ -98,83 +98,47 @@ const MUSIC_TRACKS: MusicTrack[] = [
   { id: "victory", label: "Victory", gradient: "from-amber-500/20 via-amber-500/5 to-transparent", textClass: "text-amber-200" },
 ];
 
+/** Map frontend voice theme id to backend voice profile id (ElevenLabs). */
+const VOICE_THEME_TO_PROFILE: Record<string, string> = {
+  broadcast_anchor: "referee_calm",
+  play_by_play: "hype_caster",
+  excited_caster: "hype_caster",
+  analyst_desk: "analyst_precise",
+  sideline_reporter: "coach_mentor",
+};
+
+/** Default video path (file must live in frontend/public/). Change to your file, e.g. "/my-run.mp4". */
+const DEFAULT_VIDEO_PATH = "/my-run.mp4";
+
+/** Intro and track analysis — played with video paused on first frame, before scripted commentary. */
+const INTRO_AND_TRACK_ANALYSIS =
+  "WE'RE SEEING THE 2026 ROBOT BIATHLON TRACK FOR THE FIRST TIME, and it's a BEAST. " +
+  "Two brutal zones: first, an obstacle course with two punishing obstructions. " +
+  "Then there's the shooting range, where our fearsome robots must nail a shot to the outer blue ring. " +
+  "THIS TRACK IS SCARY — we wish everyone good luck!";
+
+/** Scripted commentary during live feed (after intro). Fires as video plays from start. */
 const demoTimeline: TimelineEvent[] = [
   {
-    id: "intro",
-    t: 0.6,
-    type: "intro",
-    label: "INFO",
-    text: "Welcome to the live run. All systems green and the track is clear.",
-    sfx: "start_beep",
-  },
-  {
-    id: "start",
-    t: 3.4,
+    id: "nice_start",
+    t: 1,
     type: "commentary",
     label: "INFO",
-    text: "Clean start, strong acceleration out of the gate.",
-    sfx: "start_beep",
+    text: "And off to the races Lightning McQueen goes! Nice start.",
   },
   {
-    id: "corner_one",
-    t: 7.8,
+    id: "missed_turn",
+    t: 5,
     type: "commentary",
     label: "INFO",
-    text: "Corner one looks stable. Steering corrections are smooth.",
+    text: "Ohhh, it seems the turn was missed, and we weren't able to even touch obstacle number 1.",
   },
   {
-    id: "penalty_touch",
-    t: 11.2,
+    id: "disqualification",
+    t: 10,
     type: "penalty",
     label: "PENALTY",
-    text: "Warning: boundary touch detected at corner two.",
-    sfx: "penalty_ding",
-  },
-  {
-    id: "impact_barrier",
-    t: 15.3,
-    type: "impact",
-    label: "CONTACT",
-    text: "Contact with barrier. Recovery looks steady.",
-    sfx: "impact_thud",
-  },
-  {
-    id: "lap_one",
-    t: 21.0,
-    type: "commentary",
-    label: "INFO",
-    text: "Lap one complete. Pace remains consistent.",
-    sfx: "lap_chime",
-  },
-  {
-    id: "range_entry",
-    t: 27.5,
-    type: "commentary",
-    label: "INFO",
-    text: "Entering the shooting range. Alignment is clean.",
-  },
-  {
-    id: "range_hit",
-    t: 31.2,
-    type: "commentary",
-    label: "INFO",
-    text: "Target hit on the outer blue ring.",
-    sfx: "range_ping",
-  },
-  {
-    id: "final_push",
-    t: 39.4,
-    type: "commentary",
-    label: "INFO",
-    text: "Final push underway. Motors holding steady torque.",
-  },
-  {
-    id: "finish",
-    t: 45.8,
-    type: "finish",
-    label: "FINISH",
-    text: "Finish line crossed. Time looks strong for qualification.",
-    sfx: "finish_fanfare",
+    text: "WOAH! Off the track, McQueen goes. That's a disqualification for this run. So unfortunate.",
   },
 ];
 
@@ -385,15 +349,25 @@ export default function LiveCoach() {
   const [voiceTheme, setVoiceTheme] = useState(VOICE_THEMES[0].id);
   const [musicTrack, setMusicTrack] = useState("cinematic");
   const [sfxEnabled, setSfxEnabled] = useState(true);
+  const [captionsOn, setCaptionsOn] = useState(true);
   const [commentaryVolume, setCommentaryVolume] = useState(0.8);
   const [musicVolume, setMusicVolume] = useState(0.25);
   const [latestCaption, setLatestCaption] = useState("");
   const [status, setStatus] = useState("Press Start to begin live commentary.");
+  const [introPhaseActive, setIntroPhaseActive] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceMode, setVoiceMode] = useState<"default" | "clone">("default");
   const [showEthicsModal, setShowEthicsModal] = useState(false);
   const [ethicsConfirmed, setEthicsConfirmed] = useState(false);
   const pendingStartRef = useRef(false);
+  const pendingIntroRef = useRef(false);
+  const cloneAudioRef = useRef<HTMLAudioElement | null>(null);
+  const introHasRunRef = useRef(false);
+
+  const apiBase = useMemo(
+    () => process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000",
+    []
+  );
 
   const selectedTheme = useMemo(
     () => VOICE_THEMES.find((theme) => theme.id === voiceTheme) || VOICE_THEMES[0],
@@ -418,7 +392,7 @@ export default function LiveCoach() {
   }, []);
 
   const musicMap = useMemo<Record<string, string>>(() => {
-    if (typeof window === "undefined") return {};
+    if (typeof window === "undefined") return {} as Record<string, string>;
     return {
       cinematic: `data:audio/wav;base64,${createTone(220, 5, 0.2, 0.2)}`,
       upbeat: `data:audio/wav;base64,${createTone(440, 4, 0.22, 0.3)}`,
@@ -453,22 +427,73 @@ export default function LiveCoach() {
     return translated || event.text;
   }
 
-  function speak(text: string) {
-    if (!window.speechSynthesis) return;
-    const utterance = new SpeechSynthesisUtterance(text);
-    const voiceMatch = availableVoices.find((voice) =>
-      voice.lang.toLowerCase().startsWith(dubbingLang)
-    );
-    if (voiceMatch) {
-      utterance.voice = voiceMatch;
-      utterance.lang = voiceMatch.lang;
-    } else {
-      utterance.lang = dubbingLang;
+  function speak(text: string, onEnd?: () => void) {
+    if (voiceMode === "default") {
+      if (!window.speechSynthesis) {
+        onEnd?.();
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      const voiceMatch = availableVoices.find((voice) =>
+        voice.lang.toLowerCase().startsWith(dubbingLang)
+      );
+      if (voiceMatch) {
+        utterance.voice = voiceMatch;
+        utterance.lang = voiceMatch.lang;
+      } else {
+        utterance.lang = dubbingLang;
+      }
+      utterance.rate = selectedTheme.rate;
+      utterance.pitch = selectedTheme.pitch;
+      utterance.volume = commentaryVolume;
+      utterance.onend = () => onEnd?.();
+      utterance.onerror = () => onEnd?.();
+      window.speechSynthesis.speak(utterance);
+      return;
     }
-    utterance.rate = selectedTheme.rate;
-    utterance.pitch = selectedTheme.pitch;
-    utterance.volume = commentaryVolume;
-    window.speechSynthesis.speak(utterance);
+    const voiceProfile = VOICE_THEME_TO_PROFILE[voiceTheme] ?? "hype_caster";
+    const body = JSON.stringify({
+      text,
+      voiceProfile,
+      language: dubbingLang,
+    });
+    fetch(`${apiBase}/api/audio/tts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    })
+      .then((res) => res.json())
+      .then((data: { audioBase64?: string; mimeType?: string }) => {
+        const b64 = data?.audioBase64;
+        if (!b64) {
+          onEnd?.();
+          return;
+        }
+        const mime = data?.mimeType ?? "audio/mpeg";
+        const src = `data:${mime};base64,${b64}`;
+        if (cloneAudioRef.current) {
+          cloneAudioRef.current.pause();
+          cloneAudioRef.current = null;
+        }
+        const audio = new Audio(src);
+        cloneAudioRef.current = audio;
+        audio.volume = commentaryVolume;
+        audio.onended = () => {
+          cloneAudioRef.current = null;
+          onEnd?.();
+        };
+        audio.onerror = () => {
+          cloneAudioRef.current = null;
+          onEnd?.();
+        };
+        audio.play().catch(() => {
+          cloneAudioRef.current = null;
+          onEnd?.();
+        });
+      })
+      .catch(() => {
+        onEnd?.();
+      });
   }
 
   function playSfx(sfxId?: SfxId) {
@@ -490,7 +515,7 @@ export default function LiveCoach() {
 
   function handleTimeUpdate() {
     const video = videoRef.current;
-    if (!video || !isRunning) return;
+    if (!video || !isRunning || introPhaseActive) return;
     const currentTime = video.currentTime;
     let idx = timelineIndex;
     while (idx < demoTimeline.length && currentTime >= demoTimeline[idx].t) {
@@ -503,13 +528,20 @@ export default function LiveCoach() {
   }
 
   function resetDemo() {
+    introHasRunRef.current = false;
     setIsRunning(false);
     setIsPaused(false);
+    setIntroPhaseActive(false);
     setTimelineIndex(0);
     setLog([]);
     setLatestCaption("");
     setStatus("Demo reset.");
     window.speechSynthesis.cancel();
+    if (cloneAudioRef.current) {
+      cloneAudioRef.current.pause();
+      cloneAudioRef.current.currentTime = 0;
+      cloneAudioRef.current = null;
+    }
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
@@ -526,8 +558,39 @@ export default function LiveCoach() {
     videoRef.current.play().catch(() => undefined);
   }
 
+  function runIntroThenPlay() {
+    const video = videoRef.current;
+    if (!video) return;
+    if (introHasRunRef.current) return;
+    introHasRunRef.current = true;
+    pendingIntroRef.current = false;
+    video.currentTime = 0;
+    video.pause();
+    setIntroPhaseActive(true);
+    setStatus("Introduction and track analysis…");
+    const introEvent: TimelineEvent = {
+      id: "intro",
+      t: 0,
+      type: "intro",
+      label: "INFO",
+      text: INTRO_AND_TRACK_ANALYSIS,
+    };
+    setLog((prev) => [...prev, { event: introEvent, time: 0, text: INTRO_AND_TRACK_ANALYSIS }]);
+    setLatestCaption(INTRO_AND_TRACK_ANALYSIS);
+    speak(INTRO_AND_TRACK_ANALYSIS, () => {
+      setIntroPhaseActive(false);
+      setStatus("Live commentary active.");
+      startPlayback();
+    });
+  }
+
   function startDemo() {
     if (!videoRef.current) return;
+    if (voiceMode === "clone" && !ethicsConfirmed) {
+      setShowEthicsModal(true);
+      setStatus("Please confirm voice permissions to continue.");
+      return;
+    }
     setStatus("Live commentary active.");
     setIsRunning(true);
     setIsPaused(false);
@@ -536,35 +599,24 @@ export default function LiveCoach() {
     setLatestCaption("");
     window.speechSynthesis.cancel();
     if (musicRef.current) {
-      if (musicTrack !== "none") {
-        const src = musicMap[musicTrack as keyof typeof musicMap];
-        if (src) {
-          musicRef.current.src = src;
-          musicRef.current.loop = true;
-          musicRef.current.volume = musicVolume;
-          musicRef.current.play().catch(() => undefined);
-        }
-      } else {
-        musicRef.current.pause();
-      }
-    }
-    if (voiceMode === "clone" && !ethicsConfirmed) {
-      setShowEthicsModal(true);
-      setStatus("Please confirm voice permissions to continue.");
-      return;
+      musicRef.current.pause();
     }
     if (!videoUrl) {
       pendingStartRef.current = true;
-      setVideoUrl("/landing.mov");
+      setVideoUrl(DEFAULT_VIDEO_PATH);
       return;
     }
-    startPlayback();
+    runIntroThenPlay();
   }
 
   function stopDemo() {
     setIsPaused(true);
     setStatus("Paused.");
     window.speechSynthesis.cancel();
+    if (cloneAudioRef.current) {
+      cloneAudioRef.current.pause();
+      cloneAudioRef.current = null;
+    }
     if (videoRef.current) {
       videoRef.current.pause();
     }
@@ -588,9 +640,36 @@ export default function LiveCoach() {
     setStatus("Run complete.");
     setIsRunning(false);
     setIsPaused(false);
-    window.speechSynthesis.cancel();
+    if (cloneAudioRef.current) {
+      cloneAudioRef.current.pause();
+      cloneAudioRef.current = null;
+    }
     if (musicRef.current) {
       musicRef.current.pause();
+    }
+  }
+
+  useEffect(() => {
+    if (!pendingStartRef.current || !videoUrl) return;
+    pendingStartRef.current = false;
+    setStatus("Loading…");
+    setIsRunning(true);
+    setIsPaused(false);
+    setTimelineIndex(0);
+    setLog([]);
+    setLatestCaption("");
+    pendingIntroRef.current = true;
+    const video = videoRef.current;
+    if (video && video.readyState >= 2) {
+      pendingIntroRef.current = false;
+      runIntroThenPlay();
+    }
+  }, [videoUrl]);
+
+  function handleVideoLoadedData() {
+    if (pendingIntroRef.current && videoRef.current) {
+      pendingIntroRef.current = false;
+      runIntroThenPlay();
     }
   }
 
@@ -602,13 +681,6 @@ export default function LiveCoach() {
     }
     setVoiceMode(mode);
   }
-
-  useEffect(() => {
-    if (pendingStartRef.current && videoUrl) {
-      pendingStartRef.current = false;
-      startPlayback();
-    }
-  }, [videoUrl]);
 
   return (
     <div className="space-y-6 font-sans max-w-4xl mx-auto">
@@ -750,7 +822,7 @@ export default function LiveCoach() {
               </select>
             </div>
           </div>
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center gap-8">
             <label className="flex items-center gap-2 text-sm text-zinc-400">
               <input
                 type="checkbox"
@@ -759,6 +831,15 @@ export default function LiveCoach() {
                 className="w-4 h-4 rounded border-white/20 bg-black accent-white"
               />
               SFX on/off
+            </label>
+            <label className="flex items-center gap-2 text-sm text-zinc-400">
+              <input
+                type="checkbox"
+                checked={captionsOn}
+                onChange={(event) => setCaptionsOn(event.target.checked)}
+                className="w-4 h-4 rounded border-white/20 bg-black accent-white"
+              />
+              Captions on/off
             </label>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -801,15 +882,16 @@ export default function LiveCoach() {
               autoPlay={false}
               muted
               playsInline
-              className="w-full rounded-lg border border-white/20 bg-black aspect-video object-cover"
+              className="w-full rounded-lg border border-white/20 bg-black aspect-video object-contain"
               src={videoUrl || undefined}
+              onLoadedData={handleVideoLoadedData}
               onTimeUpdate={handleTimeUpdate}
               onEnded={handleVideoEnded}
               controls={false}
               controlsList="nodownload noplaybackrate"
               disablePictureInPicture
             />
-            {latestCaption && (
+            {captionsOn && latestCaption && (
               <div className="absolute bottom-3 left-3 right-3 bg-black/80 border border-white/10 text-white text-sm px-3 py-2 rounded-lg">
                 {latestCaption}
               </div>
