@@ -6,6 +6,7 @@ import CameraCapture from "./CameraCapture";
 import ImagePreview from "./ImagePreview";
 import AnalysisResults from "./AnalysisResults";
 import FinalizeInspection from "./FinalizeInspection";
+import RecentScansQueue from "../components/RecentScansQueue";
 
 export type InspectStep =
   | "capture"
@@ -75,8 +76,13 @@ export default function InspectPage() {
     <div className="min-h-screen bg-[#0f0f0f] text-zinc-100 font-sans">
       <AppNavbar />
 
-      <main className="max-w-2xl mx-auto px-6 py-8">
-        {step === "capture" && <CameraCapture onComplete={onCaptureComplete} />}
+      <main className="max-w-2xl mx-auto px-6 py-8 space-y-6">
+        {step === "capture" && (
+          <>
+            <CameraCapture onComplete={onCaptureComplete} />
+            <RecentScansQueue />
+          </>
+        )}
         {step === "preview" && (
           <ImagePreview
             images={images}
