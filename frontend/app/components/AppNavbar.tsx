@@ -20,7 +20,7 @@ export default function AppNavbar() {
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link
           href="/"
-          className="font-sans text-white text-xl font-semibold tracking-tight hover:text-white/90 transition-colors"
+          className="font-[cursive] text-white text-2xl tracking-tight hover:text-white/90 transition-colors"
         >
           Sentinel
         </Link>
