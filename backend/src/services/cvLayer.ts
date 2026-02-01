@@ -1,13 +1,16 @@
 import sharp from "sharp";
 import type { Detection } from "../types.js";
 
+/** Standard kit labels for mock CV detection. */
 const COMPONENT_LABELS = [
-  "motor",
-  "camera",
-  "lidar",
-  "control_board",
+  "dc_motor",
+  "servo_motor",
+  "ultrasonic_sensor",
+  "ir_sensor",
+  "arduino_uno",
   "battery",
-  "sensor",
+  "wheel",
+  "color_sensor",
 ] as const;
 
 export interface CvLayerInput {
@@ -62,11 +65,11 @@ function getMockLabelsForImage(
 ): (typeof COMPONENT_LABELS)[number][] {
   // Vary detections per "view" - front, back, top, side
   const presets: (typeof COMPONENT_LABELS)[number][][] = [
-    ["motor", "control_board"],
-    ["motor", "sensor"],
-    ["battery", "control_board"],
-    ["sensor", "motor"],
-    ["camera", "lidar", "motor"],
+    ["dc_motor", "arduino_uno"],
+    ["dc_motor", "ir_sensor"],
+    ["battery", "arduino_uno"],
+    ["ir_sensor", "dc_motor"],
+    ["wheel", "dc_motor", "servo_motor"],
   ];
-  return presets[imageIndex % presets.length] ?? ["motor", "sensor"];
+  return presets[imageIndex % presets.length] ?? ["dc_motor", "ir_sensor"];
 }

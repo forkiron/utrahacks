@@ -1,14 +1,26 @@
 import type { GeminiComponent, RuleResult, RuleSet } from "../types.js";
+import { mapToStandardType } from "./standardKit.js";
 
 const DEFAULT_RULES: RuleSet = {
   max_motors: 2,
+  max_servos: 2,
   allowed_components: [
-    "motor",
-    "ultrasonic",
-    "ir",
-    "sensor",
+    "breadboard",
     "battery",
-    "control_board",
+    "battery_holder",
+    "ultrasonic_sensor",
+    "arduino_uno",
+    "wire",
+    "wheel",
+    "dc_motor",
+    "dc_motor_holder",
+    "dc_motor_drive",
+    "screwdriver",
+    "servo_motor",
+    "color_sensor",
+    "ir_sensor",
+    "laser_cut_base",
+    "claw_arm",
   ],
   banned_components: ["camera", "lidar"],
 };
@@ -21,9 +33,8 @@ export function evaluateRules(
 
   const byType = new Map<string, number>();
   for (const c of components) {
-    const type = c.type.toLowerCase().replace(/\s+/g, "_");
-    const normalized = mapToRuleType(type);
-    byType.set(normalized, (byType.get(normalized) ?? 0) + c.count);
+    const type = mapToStandardType(c.type) ?? c.type.toLowerCase().replace(/\s+/g, "_");
+    byType.set(type, (byType.get(type) ?? 0) + c.count);
   }
 
   // Check banned components
@@ -31,16 +42,25 @@ export function evaluateRules(
     const count = byType.get(banned) ?? 0;
     if (count > 0) {
       violations.push(
-        `${banned} detected (${count}) — ${banned}s are not allowed`
+        `${banned} detected (${count}) — not in standard kit`
       );
     }
   }
 
-  // Check motor limit
-  const motorCount = byType.get("motor") ?? 0;
-  if (motorCount > rules.max_motors) {
+  // Check DC motor limit (max 2)
+  const dcMotorCount = (byType.get("dc_motor") ?? 0) + (byType.get("motor") ?? 0);
+  if (dcMotorCount > rules.max_motors) {
     violations.push(
-      `Motor limit exceeded: ${motorCount} motors (max ${rules.max_motors})`
+      `DC motor limit exceeded: ${dcMotorCount} (max ${rules.max_motors})`
+    );
+  }
+
+  // Check servo limit (max 2)
+  const servoCount = byType.get("servo_motor") ?? byType.get("servo") ?? 0;
+  const maxServos = rules.max_servos ?? 2;
+  if (servoCount > maxServos) {
+    violations.push(
+      `Servo limit exceeded: ${servoCount} (max ${maxServos})`
     );
   }
 
@@ -48,18 +68,4 @@ export function evaluateRules(
     status: violations.length === 0 ? "PASS" : "FAIL",
     violations,
   };
-}
-
-function mapToRuleType(type: string): string {
-  const map: Record<string, string> = {
-    camera: "camera",
-    lidar: "lidar",
-    motor: "motor",
-    ultrasonic: "ultrasonic",
-    ir: "ir",
-    sensor: "sensor",
-    control_board: "control_board",
-    battery: "battery",
-  };
-  return map[type] ?? type;
 }

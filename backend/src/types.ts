@@ -41,6 +41,7 @@ export interface InspectionRecord {
 
 export interface RuleSet {
   max_motors: number;
+  max_servos?: number;
   allowed_components: string[];
   banned_components: string[];
 }
