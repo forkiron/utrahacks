@@ -280,11 +280,25 @@ export default function LiveCoach() {
       setStatus("");
       setGeminiEnabled(null);
       setLastLatencyMs(null);
+
+      try {
+        const introRes = await fetch(`${apiUrl}/api/coach/intro/audio`, {
+          method: "GET",
+        });
+        if (introRes.ok) {
+          const introBlob = await introRes.blob();
+          const introUrl = URL.createObjectURL(introBlob);
+          audioQueueRef.current.unshift(introUrl);
+          if (!playingRef.current) playNext();
+        }
+      } catch {
+        // Intro audio optional; continue without it
+      }
     } catch (err) {
       console.error(err);
       setStatus("Could not access webcam. Check permissions.");
     }
-  }, []);
+  }, [apiUrl, playNext]);
 
   const handleStop = useCallback(() => {
     if (stream) {

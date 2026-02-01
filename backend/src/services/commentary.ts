@@ -17,7 +17,7 @@ export interface CommentaryContext {
   lastCommentaryHash?: string;
 }
 
-const GEMINI_TIMEOUT_MS = 1500;
+const GEMINI_TIMEOUT_MS = 4000;
 const VALID_ACTIONS = new Set([
   "stable",
   "drifting_left",
