@@ -47,7 +47,9 @@ export default function VerifyPage() {
   if (error || !record) {
     return (
       <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center px-6">
-        <p className="text-red-400 text-lg">{error ?? "Inspection not found"}</p>
+        <p className="text-red-400 text-lg">
+          {error ?? "Inspection not found"}
+        </p>
         <Link href="/" className="mt-4 text-amber-400 hover:underline">
           ← Back to home
         </Link>
@@ -76,7 +78,11 @@ export default function VerifyPage() {
           }`}
         >
           <p className="text-sm text-zinc-400">Result</p>
-          <p className={`text-3xl font-bold ${isPass ? "text-emerald-400" : "text-red-400"}`}>
+          <p
+            className={`text-3xl font-bold ${
+              isPass ? "text-emerald-400" : "text-red-400"
+            }`}
+          >
             {record.result}
           </p>
           <p className="text-zinc-500 text-sm mt-1">{record.inspection_id}</p>
@@ -90,7 +96,9 @@ export default function VerifyPage() {
 
         {record.judge_wallet && (
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
-            <p className="text-sm font-medium text-zinc-400 mb-2">Finalized by</p>
+            <p className="text-sm font-medium text-zinc-400 mb-2">
+              Finalized by
+            </p>
             <p className="font-mono text-xs break-all">{record.judge_wallet}</p>
           </div>
         )}
@@ -115,14 +123,18 @@ export default function VerifyPage() {
                 className="flex justify-between py-2 border-b border-zinc-800 last:border-0"
               >
                 <span>{c.name}</span>
-                <span className="text-zinc-500">{c.type} × {c.count}</span>
+                <span className="text-zinc-500">
+                  {c.type} × {c.count}
+                </span>
               </div>
             ))}
           </div>
         </div>
 
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
-          <p className="text-sm font-medium text-zinc-400 mb-2">On-chain proof</p>
+          <p className="text-sm font-medium text-zinc-400 mb-2">
+            On-chain proof
+          </p>
           <p className="font-mono text-xs break-all text-zinc-500">
             {record.evidence_hash}
           </p>

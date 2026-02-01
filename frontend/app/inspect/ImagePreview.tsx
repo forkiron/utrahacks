@@ -16,7 +16,8 @@ export default function ImagePreview({
   return (
     <div className="space-y-6">
       <p className="text-zinc-400 text-sm">
-        Review your {images.length} capture{images.length !== 1 ? "s" : ""}. Ready to analyze?
+        Review your {images.length} capture{images.length !== 1 ? "s" : ""}.
+        Ready to analyze?
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

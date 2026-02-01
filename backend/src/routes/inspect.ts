@@ -1,6 +1,16 @@
+import { spawn } from "child_process";
+import { writeFileSync, unlinkSync, existsSync } from "fs";
+import { join } from "path";
+import { tmpdir } from "os";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
 import { Router } from "express";
 import multer from "multer";
 import { runObjectDetection } from "../services/cvLayer.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+// backend/src/routes -> backend/src -> backend -> repo root (3 levels)
+const PROJECT_ROOT = resolve(__dirname, "..", "..", "..");
 import { decodeComponents } from "../services/gemini.js";
 import { evaluateRules } from "../services/ruleEngine.js";
 import {
@@ -38,6 +48,61 @@ router.post("/detect", upload.single("image"), async (req, res) => {
   } catch (err) {
     console.error("Detect error:", err);
     res.status(500).json({ error: "Detection failed" });
+  }
+});
+
+/** Live wheel detection using trained YOLO model (scripts/run_wheel_detect.py). */
+router.post("/detect-wheel", upload.single("image"), async (req, res) => {
+  let tempPath: string | null = null;
+  try {
+    const file = req.file;
+    if (!file?.buffer) {
+      return res.status(400).json({ error: "No image provided" });
+    }
+    tempPath = join(tmpdir(), `wheel-${Date.now()}.jpg`);
+    writeFileSync(tempPath, file.buffer);
+    const scriptPath = join(PROJECT_ROOT, "scripts", "run_wheel_detect.py");
+    const modelPath = join(PROJECT_ROOT, "runs", "detect", "wheel", "weights", "best.pt");
+    if (!existsSync(scriptPath) || !existsSync(modelPath)) {
+      return res.status(503).json({
+        error: "Wheel model not found. Run: python scripts/train_wheel.py",
+        detections: [],
+      });
+    }
+    const confParam = req.query.conf != null ? Number(req.query.conf) : 0.08;
+    const conf = Math.max(0.01, Math.min(0.95, Number.isFinite(confParam) ? confParam : 0.08));
+    const detections = await new Promise<Array<{ label: string; confidence: number; bbox: number[] }>>((resolve, reject) => {
+      const proc = spawn("python3", [scriptPath, tempPath!, modelPath, "--conf", String(conf)], {
+        cwd: PROJECT_ROOT,
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      let stdout = "";
+      let stderr = "";
+      proc.stdout?.on("data", (d) => { stdout += d; });
+      proc.stderr?.on("data", (d) => { stderr += d; });
+      proc.on("close", (code) => {
+        if (code !== 0) {
+          reject(new Error(stderr || "Python script failed"));
+          return;
+        }
+        try {
+          resolve(JSON.parse(stdout.trim()) as Array<{ label: string; confidence: number; bbox: number[] }>);
+        } catch {
+          resolve([]);
+        }
+      });
+      proc.on("error", reject);
+    });
+    res.json({ detections });
+  } catch (err) {
+    console.error("Detect-wheel error:", err);
+    res.status(500).json({ error: "Wheel detection failed", detections: [] });
+  } finally {
+    if (tempPath && existsSync(tempPath)) {
+      try {
+        unlinkSync(tempPath);
+      } catch {}
+    }
   }
 });
 
@@ -91,14 +156,15 @@ router.post("/finalize", upload.none(), async (req, res) => {
       demo_mode,
     } = req.body;
 
-    const demoBypass =
-      process.env.DEMO_MODE === "true" && demo_mode === true;
+    const demoBypass = process.env.DEMO_MODE === "true" && demo_mode === true;
 
     if (!demoBypass) {
       if (!wallet_address || !signature || !signed_message) {
         return res
           .status(401)
-          .json({ error: "Wallet signature required. Connect wallet and sign." });
+          .json({
+            error: "Wallet signature required. Connect wallet and sign.",
+          });
       }
 
       if (!verifyWalletSignature(signed_message, signature, wallet_address)) {

@@ -2,7 +2,14 @@ import type { GeminiComponent, RuleResult, RuleSet } from "../types.js";
 
 const DEFAULT_RULES: RuleSet = {
   max_motors: 2,
-  allowed_components: ["motor", "ultrasonic", "ir", "sensor", "battery", "control_board"],
+  allowed_components: [
+    "motor",
+    "ultrasonic",
+    "ir",
+    "sensor",
+    "battery",
+    "control_board",
+  ],
   banned_components: ["camera", "lidar"],
 };
 

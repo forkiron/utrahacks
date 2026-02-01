@@ -25,11 +25,17 @@ export default function AnalysisResults({
     <div className="space-y-6">
       <div
         className={`rounded-xl p-6 ${
-          isPass ? "bg-emerald-500/20 border border-emerald-500/50" : "bg-red-500/20 border border-red-500/50"
+          isPass
+            ? "bg-emerald-500/20 border border-emerald-500/50"
+            : "bg-red-500/20 border border-red-500/50"
         }`}
       >
         <p className="text-sm font-medium text-zinc-400">Result</p>
-        <p className={`text-3xl font-bold ${isPass ? "text-emerald-400" : "text-red-400"}`}>
+        <p
+          className={`text-3xl font-bold ${
+            isPass ? "text-emerald-400" : "text-red-400"
+          }`}
+        >
           {result.status}
         </p>
         {result.violations.length > 0 && (
@@ -44,7 +50,9 @@ export default function AnalysisResults({
       </div>
 
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
-        <p className="text-sm font-medium text-zinc-400 mb-3">Detected components</p>
+        <p className="text-sm font-medium text-zinc-400 mb-3">
+          Detected components
+        </p>
         <div className="space-y-2">
           {components.map((c, i) => (
             <div
