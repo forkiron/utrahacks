@@ -31,15 +31,19 @@ const VALID_ACTIONS = new Set([
   "unknown",
 ]);
 
-const GEMINI_PROMPT = `You are a sports commentator for a robotics run. Look at the image and describe what the robot is doing in one short sentence (9-16 words). Vary your line based on what you see: line position, obstacles, speed, etc. Do not repeat the same generic phrase.
+const GEMINI_PROMPT = `You are a sports commentator for a robotics run. Look at the image and describe what the robot is doing in one short sentence (9-16 words). Vary your line based on what you see: line position, obstacles, speed, curve, blur, empty track, etc. Do not repeat the same generic phrase.
+
+You MUST ground your comment in what is visible in the image. Mention at least one visible cue (line position, curve, obstacle, blur, empty track, off-center robot, etc.). If the image is unclear or empty, say so explicitly and set action to "unknown".
+Avoid generic filler like "steady running" unless the image clearly supports it.
+Use plain ASCII characters only (no emojis, no em dash).
 
 Return exactly one JSON object with these keys only:
 - "action": one of stable, drifting_left, drifting_right, approaching_obstacle, line_lost, line_weak, climbing, stuck, recovery, unknown
-- "commentary": your one-sentence comment (e.g. "Looks like they're drifting left — tighten that turn." or "Nice and steady through this section.")
+- "commentary": your one-sentence comment (e.g. "Looks like they're drifting left - tighten that turn." or "Nice and steady through this section.")
 - "confidence": number between 0.0 and 1.0
 - "tags": array of 0-3 short strings (e.g. "line", "obstacle", "curve")
 
-Example format: {"action":"stable","commentary":"Smooth and centered through here.","confidence":0.85,"tags":["line"]}
+Example format: {"action":"stable","commentary":"Centered on the line, slight left curve ahead.","confidence":0.85,"tags":["line","curve"]}
 
 Output only the JSON object, no other text or markdown.`;
 
@@ -75,52 +79,52 @@ function pruneGeminiCache() {
 
 const REPHRASE_BY_ACTION: Record<string, string[]> = {
   stable: ["Smooth and centered through here.", "Steady run, no drama.", "Holding the line nicely."],
-  drifting_left: ["Looks like they're drifting left — tighten that turn.", "Left pull — small correction needed."],
-  drifting_right: ["Drifting right — stay centered.", "Right bias — ease it back."],
-  approaching_obstacle: ["Looks like an obstacle — careful steering.", "Something in the way — slow it down."],
-  line_lost: ["Lost the line — but they're fighting back.", "Line's gone — recovery mode."],
-  line_weak: ["Line looks faint — slow down and find it.", "Tracking's shaky — stay patient."],
-  climbing: ["Still climbing… steady.", "Working their way up."],
-  stuck: ["Looks stuck — can they get free?", "Oh, stuck… but they're trying."],
-  recovery: ["Recovering — nice save.", "Fighting back into control."],
-  unknown: ["Unclear from here — we'll see.", "Looks like they're adjusting."],
+  drifting_left: ["Looks like they're drifting left - tighten that turn.", "Left pull - small correction needed."],
+  drifting_right: ["Drifting right - stay centered.", "Right bias - ease it back."],
+  approaching_obstacle: ["Looks like an obstacle - careful steering.", "Something in the way - slow it down."],
+  line_lost: ["Lost the line - but they're fighting back.", "Line's gone - recovery mode."],
+  line_weak: ["Line looks faint - slow down and find it.", "Tracking's shaky - stay patient."],
+  climbing: ["Still climbing... steady.", "Working their way up."],
+  stuck: ["Looks stuck - can they get free?", "Oh, stuck... but they're trying."],
+  recovery: ["Recovering - nice save.", "Fighting back into control."],
+  unknown: ["Unclear from here - we'll see.", "Looks like they're adjusting."],
 };
 
 const GENERIC_LINES = [
   "Smooth and centered through this section.",
   "Steady run here, nice control.",
   "Holding the line, looks good.",
-  "Clean and smooth — no drama.",
+  "Clean and smooth - no drama.",
 ];
 
 const DRIFT_LEFT_LINES = [
-  "Looks like they're drifting left — tighten that turn.",
+  "Looks like they're drifting left - tighten that turn.",
   "Drifting left, small correction needed.",
-  "Left pull — stay centered.",
+  "Left pull - stay centered.",
 ];
 
 const DRIFT_RIGHT_LINES = [
-  "Drifting right — ease it back.",
-  "Right bias showing — correct and hold.",
-  "Sliding right — tighten that turn.",
+  "Drifting right - ease it back.",
+  "Right bias showing - correct and hold.",
+  "Sliding right - tighten that turn.",
 ];
 
 const LINE_WEAK_LINES = [
-  "Line looks faint — slow down and find it.",
-  "Tracking seems shaky — stay patient.",
-  "Line's weak here — easy does it.",
+  "Line looks faint - slow down and find it.",
+  "Tracking seems shaky - stay patient.",
+  "Line's weak here - easy does it.",
 ];
 
 const OBSTACLE_LINES = [
-  "Looks like an obstacle — careful steering.",
-  "Something in the way — slow it down.",
-  "Obstacle ahead — stay centered.",
+  "Looks like an obstacle - careful steering.",
+  "Something in the way - slow it down.",
+  "Obstacle ahead - stay centered.",
 ];
 
 const STRUGGLE_CLIMB_LINES = [
-  "Still climbing… steady as they go.",
-  "Working their way up — looks tough.",
-  "Climbing — slow and controlled.",
+  "Still climbing... steady as they go.",
+  "Working their way up - looks tough.",
+  "Climbing - slow and controlled.",
 ];
 
 function sanitizeCommentary(text: string): string {
@@ -349,7 +353,7 @@ async function generateGeminiCommentary(
   const parsed = parseGeminiJson(rawText);
   if (!parsed) {
     return {
-      text: sanitizeCommentary("Looks like steady running — we'll see."),
+      text: sanitizeCommentary("Image unclear here - cannot confirm line or obstacles."),
       tags: [],
       action: "unknown",
       confidence: 0.5,
