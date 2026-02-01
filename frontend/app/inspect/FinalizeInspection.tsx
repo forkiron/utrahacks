@@ -67,7 +67,7 @@ export default function FinalizeInspection({
   if (result) {
     return (
       <div className="space-y-6 font-sans">
-        <div className="rounded-lg border border-white/10 bg-black shadow-sm p-8 text-center">
+        <div className="rounded-lg border border-white/20 bg-black shadow-sm p-8 text-center">
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Inspection finalized</p>
           <p className="text-xl font-mono font-semibold mt-2 text-zinc-100">
             {result.inspection_id}
@@ -101,7 +101,7 @@ export default function FinalizeInspection({
       </p>
 
       {error && (
-        <div className="rounded-xl bg-red-500/10 border border-white/10 p-4 text-red-400 text-sm backdrop-blur">
+        <div className="rounded-xl bg-red-500/10 border border-white/20 p-4 text-red-400 text-sm backdrop-blur">
           {error}
         </div>
       )}

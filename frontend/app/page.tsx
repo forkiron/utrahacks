@@ -70,18 +70,18 @@ export default function Home() {
           <div className="w-full max-w-6xl mx-auto px-6">
             <div className="rounded-xl border border-white/20 overflow-hidden shadow-2xl bg-white/5 backdrop-blur">
               {/* Dashboard header */}
-              <div className="border-b border-white/10 px-6 py-4 flex items-center gap-2">
+              <div className="border-b border-white/20 px-6 py-4 flex items-center gap-2">
                 <span className="text-white/60 text-sm font-medium">
                   Dashboard
                 </span>
               </div>
               {/* Dashboard content - placeholder grid */}
               <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[400px]">
-                <div className="rounded-lg border border-white/10 bg-white/5 h-32" />
-                <div className="rounded-lg border border-white/10 bg-white/5 h-32" />
-                <div className="rounded-lg border border-white/10 bg-white/5 h-32" />
-                <div className="rounded-lg border border-white/10 bg-white/5 h-48 md:col-span-2" />
-                <div className="rounded-lg border border-white/10 bg-white/5 h-48" />
+                <div className="rounded-lg border border-white/20 bg-white/5 h-32" />
+                <div className="rounded-lg border border-white/20 bg-white/5 h-32" />
+                <div className="rounded-lg border border-white/20 bg-white/5 h-32" />
+                <div className="rounded-lg border border-white/20 bg-white/5 h-48 md:col-span-2" />
+                <div className="rounded-lg border border-white/20 bg-white/5 h-48" />
               </div>
             </div>
           </div>

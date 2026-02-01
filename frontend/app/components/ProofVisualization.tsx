@@ -26,7 +26,7 @@ export default function ProofVisualization({
     : null;
 
   return (
-    <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4 font-sans">
+    <div className="rounded-lg border border-white/20 bg-black shadow-sm p-4 font-sans">
       <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
         On-chain proof
       </p>

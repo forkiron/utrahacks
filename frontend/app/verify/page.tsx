@@ -37,7 +37,7 @@ export default function VerifyLandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] text-zinc-100 font-sans">
+    <div className="min-h-screen bg-black text-zinc-100 font-sans">
       <AppNavbar />
       <main className="max-w-2xl mx-auto px-6 py-8 space-y-8">
         <div className="text-center">
@@ -48,7 +48,7 @@ export default function VerifyLandingPage() {
         </div>
 
         {/* Look up by ID */}
-        <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
+        <div className="rounded-lg border border-white/20 bg-black shadow-sm p-4">
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
             Look up by ID
           </p>
@@ -58,7 +58,7 @@ export default function VerifyLandingPage() {
               value={id}
               onChange={(e) => setId(e.target.value)}
               placeholder="e.g. INS-2026-8296"
-              className="flex-1 px-4 py-2.5 bg-black/30 border border-white/10 rounded-xl text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 text-sm"
+              className="flex-1 px-4 py-2.5 bg-black/30 border border-white/20 rounded-xl text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 text-sm"
             />
             <button
               type="submit"
@@ -82,7 +82,7 @@ export default function VerifyLandingPage() {
               <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
             </div>
           ) : list.length === 0 ? (
-            <div className="rounded-lg border border-white/10 bg-black shadow-sm p-8 text-center text-zinc-500 text-sm">
+            <div className="rounded-lg border border-white/20 bg-black shadow-sm p-8 text-center text-zinc-500 text-sm">
               No inspections yet. Finalize one from Bot Security to see it here.
             </div>
           ) : (
@@ -99,7 +99,7 @@ export default function VerifyLandingPage() {
                   : null;
                 return (
                   <li key={record.inspection_id}>
-                    <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4 hover:bg-white/5 transition-colors">
+                    <div className="rounded-lg border border-white/20 bg-black shadow-sm p-4 hover:bg-white/5 transition-colors">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                           <p className="font-mono font-semibold text-zinc-100">
@@ -121,7 +121,7 @@ export default function VerifyLandingPage() {
                         <div className="flex flex-wrap items-center gap-2">
                           <Link
                             href={`/verify/${record.inspection_id}`}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl text-sm text-zinc-200 hover:text-white transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/15 border border-white/20 rounded-xl text-sm text-zinc-200 hover:text-white transition-colors"
                           >
                             View details
                           </Link>
@@ -130,7 +130,7 @@ export default function VerifyLandingPage() {
                               href={explorerUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl text-sm text-zinc-200 hover:text-white transition-colors"
+                              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/15 border border-white/20 rounded-xl text-sm text-zinc-200 hover:text-white transition-colors"
                             >
                               Solana
                             </a>

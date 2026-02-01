@@ -49,7 +49,7 @@ export default function AnalysisResults({
         )}
       </div>
 
-      <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
+      <div className="rounded-lg border border-white/20 bg-black shadow-sm p-4">
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
           Detected components
         </p>
@@ -68,21 +68,21 @@ export default function AnalysisResults({
         </div>
       </div>
 
-      <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
+      <div className="rounded-lg border border-white/20 bg-black shadow-sm p-4">
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-2">Robot ID</p>
         <input
           type="text"
           value={robotId}
           onChange={(e) => setRobotId(e.target.value)}
           placeholder="e.g. TEAM17-BOT-A"
-          className="w-full px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 font-sans text-sm"
+          className="w-full px-4 py-2.5 bg-black/30 border border-white/20 rounded-lg text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 font-sans text-sm"
         />
       </div>
 
       <div className="flex gap-3">
         <button
           onClick={onBack}
-          className="flex-1 py-3 bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl font-medium text-sm transition-colors font-sans"
+          className="flex-1 py-3 bg-white/10 hover:bg-white/15 border border-white/20 rounded-xl font-medium text-sm transition-colors font-sans"
         >
           Back
         </button>

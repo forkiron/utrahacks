@@ -25,7 +25,7 @@ export default function ImagePreview({
             key={img.id}
             src={img.preview}
             alt=""
-            className="w-full aspect-square object-cover rounded-xl border border-white/10"
+            className="w-full aspect-square object-cover rounded-xl border border-white/20"
           />
         ))}
       </div>
@@ -33,7 +33,7 @@ export default function ImagePreview({
       <div className="flex gap-3">
         <button
           onClick={onBack}
-          className="flex-1 py-3 bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl font-medium text-sm transition-colors"
+          className="flex-1 py-3 bg-white/10 hover:bg-white/15 border border-white/20 rounded-xl font-medium text-sm transition-colors"
         >
           Back
         </button>

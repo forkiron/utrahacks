@@ -73,7 +73,7 @@ export default function InspectPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] text-zinc-100 font-sans">
+    <div className="min-h-screen bg-black text-zinc-100 font-sans">
       <AppNavbar />
 
       <main className="max-w-2xl mx-auto px-6 py-8 space-y-6">

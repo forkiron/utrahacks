@@ -30,7 +30,7 @@ export default function RecentScansQueue() {
 
   if (loading) {
     return (
-      <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
+      <div className="rounded-lg border border-white/20 bg-black shadow-sm p-4">
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
           Recent verifications
         </p>
@@ -43,7 +43,7 @@ export default function RecentScansQueue() {
 
   if (inspections.length === 0) {
     return (
-      <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
+      <div className="rounded-lg border border-white/20 bg-black shadow-sm p-4">
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
           Recent verifications
         </p>
@@ -57,7 +57,7 @@ export default function RecentScansQueue() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
   return (
-    <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
+    <div className="rounded-lg border border-white/20 bg-black shadow-sm p-4">
       <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
         Recent verifications
       </p>

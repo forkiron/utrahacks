@@ -44,7 +44,7 @@ export default function VerifyPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-amber-500/50 border-t-amber-500 rounded-full animate-spin" />
       </div>
     );
@@ -52,7 +52,7 @@ export default function VerifyPage() {
 
   if (error || !record) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center px-6">
+      <div className="min-h-screen bg-black text-zinc-100 flex flex-col items-center justify-center px-6">
         <p className="text-red-400 text-lg">
           {error ?? "Inspection not found"}
         </p>
@@ -69,7 +69,7 @@ export default function VerifyPage() {
   const imageCount = record.image_count ?? 0;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans">
+    <div className="min-h-screen bg-black text-zinc-100 font-sans">
       <AppNavbar />
 
       <main className="max-w-xl mx-auto px-6 py-8 space-y-6">
@@ -93,7 +93,7 @@ export default function VerifyPage() {
         </div>
 
         {imageCount > 0 && (
-          <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
+          <div className="rounded-lg border border-white/20 bg-black shadow-sm p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
               Inspection images
             </p>
@@ -107,7 +107,7 @@ export default function VerifyPage() {
                   href={`${apiUrl}/api/inspect/evidence/${record.inspection_id}/${i}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block rounded-xl border border-white/10 overflow-hidden bg-black/30 aspect-square"
+                  className="block rounded-xl border border-white/20 overflow-hidden bg-black/30 aspect-square"
                 >
                   <img
                     src={`${apiUrl}/api/inspect/evidence/${record.inspection_id}/${i}`}
@@ -120,13 +120,13 @@ export default function VerifyPage() {
           </div>
         )}
 
-        <div className="rounded-lg border border-white/10 bg-black p-4">
+        <div className="rounded-lg border border-white/20 bg-black p-4">
           <p className="text-sm font-medium text-zinc-400 mb-2">Robot ID</p>
           <p className="font-mono">{record.robot_id}</p>
         </div>
 
         {record.judge_wallet && (
-          <div className="rounded-lg border border-white/10 bg-black p-4">
+          <div className="rounded-lg border border-white/20 bg-black p-4">
             <p className="text-sm font-medium text-zinc-400 mb-2">
               Finalized by
             </p>
@@ -135,7 +135,7 @@ export default function VerifyPage() {
         )}
 
         {record.violations.length > 0 && (
-          <div className="rounded-lg border border-white/10 bg-black p-4">
+          <div className="rounded-lg border border-white/20 bg-black p-4">
             <p className="text-sm font-medium text-zinc-400 mb-2">Violations</p>
             <ul className="space-y-1 text-red-400">
               {record.violations.map((v, i) => (
@@ -145,7 +145,7 @@ export default function VerifyPage() {
           </div>
         )}
 
-        <div className="rounded-lg border border-white/10 bg-black p-4">
+        <div className="rounded-lg border border-white/20 bg-black p-4">
           <p className="text-sm font-medium text-zinc-400 mb-3">Components</p>
           <div className="space-y-2">
             {record.components.map((c, i) => (

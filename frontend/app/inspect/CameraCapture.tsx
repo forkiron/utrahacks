@@ -371,7 +371,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
     <div className="space-y-6 font-sans">
       <div
         ref={containerRef}
-        className="rounded-lg border border-white/10 bg-black shadow-sm overflow-hidden aspect-video flex items-center justify-center relative"
+        className="rounded-lg border border-white/20 bg-black shadow-sm overflow-hidden aspect-video flex items-center justify-center relative"
       >
         {!stream && (
           <div className="text-center p-8">
@@ -385,7 +385,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
               Live detection runs when camera is on. Snapshot only when you want
               to capture.
             </p>
-            <label className="mt-2 inline-block px-6 py-3 bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl cursor-pointer text-sm">
+            <label className="mt-2 inline-block px-6 py-3 bg-white/10 hover:bg-white/15 border border-white/20 rounded-xl cursor-pointer text-sm">
               Upload from device
               <input
                 type="file"
@@ -500,7 +500,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
       </div>
 
       {captured.length > 0 && (
-        <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
+        <div className="rounded-lg border border-white/20 bg-black shadow-sm p-4">
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-2">
             {captured.length} snapshot{captured.length !== 1 ? "s" : ""} (3–5
             recommended)
@@ -511,7 +511,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
                 <img
                   src={img.preview}
                   alt=""
-                  className="w-20 h-20 object-cover rounded-lg border border-white/10"
+                  className="w-20 h-20 object-cover rounded-lg border border-white/20"
                 />
                 <button
                   onClick={() => removeImage(img.id)}
@@ -527,7 +527,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
 
       {!stream && captured.length > 0 && (
         <div className="flex gap-2">
-          <label className="flex-1 px-4 py-3 bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl text-center cursor-pointer text-sm font-sans">
+          <label className="flex-1 px-4 py-3 bg-white/10 hover:bg-white/15 border border-white/20 rounded-xl text-center cursor-pointer text-sm font-sans">
             Add more images
             <input
               type="file"

@@ -31,6 +31,11 @@ export function evaluateRules(
 ): RuleResult {
   const violations: string[] = [];
 
+  if (!components?.length) {
+    violations.push("No components detected — inspection cannot pass");
+    return { status: "FAIL", violations };
+  }
+
   const byType = new Map<string, number>();
   for (const c of components) {
     const type = mapToStandardType(c.type) ?? c.type.toLowerCase().replace(/\s+/g, "_");

@@ -17,7 +17,7 @@ export default function AppNavbar() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0f0f0f]/95 backdrop-blur font-sans">
+    <header className="sticky top-0 z-50 border-b border-white/20 bg-black/95 backdrop-blur font-sans">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link
           href="/"
