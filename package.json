@@ -12,5 +12,11 @@
     "install:all": "npm install && npm install -w frontend && npm install -w backend",
     "lint": "npm run lint --workspaces --if-present"
   },
-  "workspaces": ["frontend", "backend"]
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "dependencies": {
+    "mongodb": "^7.0.0"
+  }
 }
