@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const CHECK_INTERVAL_MS = 1000;
 const MIN_SEND_INTERVAL_MS = 5000;
+const FORCE_SEND_INTERVAL_MS = 12000;
 const MIN_SPEAK_INTERVAL_MS = 3000;
 const AUDIO_QUEUE_LIMIT = 3;
 const HASH_SIZE = 16;
@@ -14,7 +15,7 @@ interface CommentaryEvent {
   t: number;
   text: string;
   meta?: {
-    source: "mock" | "gemini";
+    source: "mock" | "gemini" | "intro";
     latencyMs?: number;
     tags?: string[];
   };
@@ -70,6 +71,7 @@ export default function LiveCoach() {
   const audioQueueRef = useRef<string[]>([]);
   const playingRef = useRef(false);
   const lastSpokenRef = useRef<number>(0);
+  const introFinishedRef = useRef(true);
 
   const playNext = useCallback(() => {
     if (playingRef.current) return;
@@ -128,6 +130,7 @@ export default function LiveCoach() {
         audio.removeAttribute("src");
       }
       playingRef.current = false;
+      introFinishedRef.current = true;
       playNext();
     };
     audio.addEventListener("ended", onEnded);
@@ -138,11 +141,11 @@ export default function LiveCoach() {
   }, [playNext]);
 
   useEffect(() => {
-    if (stream && videoRef.current) {
+    if (stream && started && videoRef.current) {
       videoRef.current.srcObject = stream;
       videoRef.current.play().catch(console.error);
     }
-  }, [stream]);
+  }, [stream, started]);
 
   const captureAndMaybeSend = useCallback(async () => {
     const video = videoRef.current;
@@ -151,6 +154,7 @@ export default function LiveCoach() {
     if (!video || !captureCanvas || !hashCanvas || !started || !stream) return;
     if (video.readyState < 2 || !video.videoWidth || !video.videoHeight) return;
     if (!commentaryOn || pendingRef.current) return;
+    if (!introFinishedRef.current) return;
 
     const now = Date.now();
     const elapsed = now - lastSentRef.current;
@@ -177,7 +181,9 @@ export default function LiveCoach() {
     );
     lastFrameDataRef.current = imageData.data.slice();
 
-    if (changeScore < PIXEL_DIFF_THRESHOLD) return;
+    const sceneChanged = changeScore >= PIXEL_DIFF_THRESHOLD;
+    const forceSend = elapsed >= FORCE_SEND_INTERVAL_MS;
+    if (!sceneChanged && !forceSend) return;
 
     lastSentRef.current = now;
     pendingRef.current = true;
@@ -224,7 +230,7 @@ export default function LiveCoach() {
           const audioBlob = await ttsRes.blob();
           const url = URL.createObjectURL(audioBlob);
           enqueueAudio(url);
-        } else if (ttsRes.status === 400) {
+        } else if (ttsRes.status === 400 || ttsRes.status === 501) {
           setElevenLabsEnabled(false);
           setStatus("ElevenLabs not configured. Text-only commentary.");
         }
@@ -275,16 +281,48 @@ export default function LiveCoach() {
       sessionStartRef.current = Date.now();
       lastSentRef.current = 0;
       lastFrameDataRef.current = null;
-      setStarted(true);
-      setEvents([]);
       setStatus("");
       setGeminiEnabled(null);
       setLastLatencyMs(null);
+
+      const introPlaceholder: CommentaryEvent = {
+        eventId: `intro-${crypto.randomUUID()}`,
+        t: 0,
+        text: "Track analysis and introduction",
+        meta: { source: "intro" },
+      };
+
+      try {
+        const introRes = await fetch(`${apiUrl}/api/coach/intro/audio`, {
+          method: "GET",
+        });
+        if (introRes.ok) {
+          const introBlob = await introRes.blob();
+          const introUrl = URL.createObjectURL(introBlob);
+          audioQueueRef.current.forEach((url) => URL.revokeObjectURL(url));
+          audioQueueRef.current = [introUrl];
+          lastSpokenRef.current = 0;
+          introFinishedRef.current = false;
+          setEvents([introPlaceholder]);
+        } else {
+          introFinishedRef.current = true;
+          if (introRes.status === 501) setElevenLabsEnabled(false);
+          setEvents([introPlaceholder]);
+        }
+      } catch {
+        introFinishedRef.current = true;
+        setEvents([introPlaceholder]);
+      }
+
+      setStarted(true);
+      if (audioQueueRef.current.length > 0 && !playingRef.current) {
+        playNext();
+      }
     } catch (err) {
       console.error(err);
       setStatus("Could not access webcam. Check permissions.");
     }
-  }, []);
+  }, [apiUrl, playNext]);
 
   const handleStop = useCallback(() => {
     if (stream) {
@@ -296,6 +334,14 @@ export default function LiveCoach() {
       clearInterval(checkIntervalRef.current);
       checkIntervalRef.current = null;
     }
+    // Stop current audio and clear queue
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.removeAttribute("src");
+      audioRef.current.load();
+    }
+    playingRef.current = false;
+    introFinishedRef.current = true;
     audioQueueRef.current.forEach((url) => URL.revokeObjectURL(url));
     audioQueueRef.current = [];
   }, [stream]);
@@ -392,11 +438,13 @@ export default function LiveCoach() {
                 <div className="flex items-center justify-between text-xs text-zinc-500">
                   <span>{formatTime(evt.t)}</span>
                   <span className="uppercase tracking-wide">
-                    {evt.meta?.source ?? "mock"}
+                    {evt.meta?.source === "intro"
+                      ? "intro"
+                      : evt.meta?.source ?? "mock"}
                   </span>
                 </div>
                 <p className="mt-2 text-sm text-zinc-200">{evt.text}</p>
-                {evt.meta?.tags?.length ? (
+                {evt.meta?.source !== "intro" && evt.meta?.tags?.length ? (
                   <p className="mt-2 text-xs text-zinc-500">
                     {evt.meta.tags.join(", ")}
                   </p>

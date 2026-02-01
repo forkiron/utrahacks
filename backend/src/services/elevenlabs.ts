@@ -3,8 +3,18 @@ import crypto from "crypto";
 const CACHE_LIMIT = 200;
 const audioCache = new Map<string, Buffer>();
 
-function getCacheKey(text: string): string {
-  return crypto.createHash("sha256").update(text).digest("hex");
+const TTS_MODEL_ID = "eleven_multilingual_v2";
+const VOICE_SETTINGS = { stability: 0.4, similarity_boost: 0.7 };
+
+/** Cache key: text + voiceId + model + settings so caching is shared and deterministic. */
+function getCacheKey(text: string, voiceId: string): string {
+  const payload = [
+    text.trim(),
+    voiceId,
+    TTS_MODEL_ID,
+    JSON.stringify(VOICE_SETTINGS),
+  ].join("|");
+  return crypto.createHash("sha256").update(payload).digest("hex");
 }
 
 function pruneCache() {
@@ -13,6 +23,12 @@ function pruneCache() {
   if (oldestKey) {
     audioCache.delete(oldestKey);
   }
+}
+
+export function isElevenLabsConfigured(): boolean {
+  const apiKey = process.env.ELEVENLABS_API_KEY ?? "";
+  const voiceId = process.env.ELEVENLABS_VOICE_ID ?? "";
+  return Boolean(apiKey && voiceId);
 }
 
 export async function tts(text: string): Promise<Buffer> {
@@ -26,7 +42,7 @@ export async function tts(text: string): Promise<Buffer> {
   }
 
   const cleanText = text.trim();
-  const cacheKey = getCacheKey(cleanText);
+  const cacheKey = getCacheKey(cleanText, voiceId);
   const cached = audioCache.get(cacheKey);
   if (cached) {
     return cached;
@@ -43,11 +59,8 @@ export async function tts(text: string): Promise<Buffer> {
       },
       body: JSON.stringify({
         text: cleanText,
-        model_id: "eleven_multilingual_v2",
-        voice_settings: {
-          stability: 0.4,
-          similarity_boost: 0.7,
-        },
+        model_id: TTS_MODEL_ID,
+        voice_settings: VOICE_SETTINGS,
       }),
     }
   );
