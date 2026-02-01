@@ -1,4 +1,8 @@
 import Link from "next/link";
+import LandingFeatureVerify from "./components/landing/LandingFeatureVerify";
+import LandingFeatureResult from "./components/landing/LandingFeatureResult";
+import LandingFeatureDetail from "./components/landing/LandingFeatureDetail";
+import LandingFeatureCommentary from "./components/landing/LandingFeatureCommentary";
 
 export default function Home() {
   return (
@@ -62,26 +66,78 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* Demo section: Placeholder dashboard - aligned with header */}
+        {/* Features: irregular grid replicas of Verify, Result, Detail, Commentary */}
         <section
           id="demo"
-          className="relative min-h-[90vh] flex items-end justify-center pt-32 pb-20"
+          className="relative pt-32 pb-24 px-6"
         >
-          <div className="w-full max-w-6xl mx-auto px-6">
-            <div className="rounded-xl border border-white/20 overflow-hidden shadow-2xl bg-white/5 backdrop-blur">
-              {/* Dashboard header */}
-              <div className="border-b border-white/10 px-6 py-4 flex items-center gap-2">
-                <span className="text-white/60 text-sm font-medium">
-                  Dashboard
-                </span>
+          <div className="w-full max-w-6xl mx-auto">
+            <h2 className="text-2xl font-bold text-white text-center mb-2">
+              Sentinel in action
+            </h2>
+            <p className="text-zinc-400 text-sm text-center mb-12 max-w-xl mx-auto">
+              Verify bots, inspect results, view components, and follow live commentary.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 min-h-[680px]">
+              {/* Verify — wider (7 cols) */}
+              <div className="md:col-span-7 min-h-[360px] md:min-h-0 flex flex-col">
+                <div className="relative rounded-2xl border border-white/15 bg-black/40 backdrop-blur-sm shadow-xl p-6 flex-1 flex flex-col min-h-0 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-tl from-cyan-500/15 via-transparent to-transparent pointer-events-none" />
+                  <div className="relative z-10 flex-1 min-h-0 min-w-0 scale-[0.92] origin-top-left">
+                    <div className="h-full w-full min-h-[320px]">
+                      <LandingFeatureVerify />
+                    </div>
+                  </div>
+                  <p className="relative z-10 text-zinc-500 text-sm mt-3 leading-relaxed px-1">
+                    Verify Inspection. Look up inspections by ID and view recent verifications with on-chain proof.
+                  </p>
+                </div>
               </div>
-              {/* Dashboard content - placeholder grid */}
-              <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[400px]">
-                <div className="rounded-lg border border-white/10 bg-white/5 h-32" />
-                <div className="rounded-lg border border-white/10 bg-white/5 h-32" />
-                <div className="rounded-lg border border-white/10 bg-white/5 h-32" />
-                <div className="rounded-lg border border-white/10 bg-white/5 h-48 md:col-span-2" />
-                <div className="rounded-lg border border-white/10 bg-white/5 h-48" />
+              {/* Result — narrower (5 cols) */}
+              <div className="md:col-span-5 min-h-[400px] md:min-h-0 flex flex-col">
+                <div className="relative rounded-2xl border border-white/15 bg-black/40 backdrop-blur-sm shadow-xl p-6 flex-1 flex flex-col min-h-0 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/25 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-green-500/15 via-transparent to-transparent pointer-events-none" />
+                  <div className="relative z-10 flex-1 min-h-0 min-w-0 scale-[0.92] origin-top-left">
+                    <div className="h-full w-full min-h-[380px]">
+                      <LandingFeatureResult />
+                    </div>
+                  </div>
+                  <p className="relative z-10 text-zinc-500 text-sm mt-3 leading-relaxed px-1">
+                    Inspection Result. See pass/fail outcome, evidence photos, and robot ID at a glance.
+                  </p>
+                </div>
+              </div>
+              {/* Detail — narrower (5 cols) */}
+              <div className="md:col-span-5 min-h-[360px] md:min-h-0 flex flex-col">
+                <div className="relative rounded-2xl border border-white/15 bg-black/40 backdrop-blur-sm shadow-xl p-6 flex-1 flex flex-col min-h-0 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-bl from-pink-500/15 via-transparent to-transparent pointer-events-none" />
+                  <div className="relative z-10 flex-1 min-h-0 min-w-0 scale-[0.92] origin-top-left">
+                    <div className="h-full w-full min-h-[320px]">
+                      <LandingFeatureDetail />
+                    </div>
+                  </div>
+                  <p className="relative z-10 text-zinc-500 text-sm mt-3 leading-relaxed px-1">
+                    Inspection Detail. Robot ID, finalizer wallet, and detected components from the standard kit.
+                  </p>
+                </div>
+              </div>
+              {/* Commentary — wider (7 cols) */}
+              <div className="md:col-span-7 min-h-[320px] md:min-h-0 flex flex-col">
+                <div className="relative rounded-2xl border border-white/15 bg-black/40 backdrop-blur-sm shadow-xl p-6 flex-1 flex flex-col min-h-0 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-tl from-amber-500/20 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/15 via-transparent to-transparent pointer-events-none" />
+                  <div className="relative z-10 flex-1 min-h-0 min-w-0 scale-[0.92] origin-top-left">
+                    <div className="h-full w-full min-h-[280px]">
+                      <LandingFeatureCommentary />
+                    </div>
+                  </div>
+                  <p className="relative z-10 text-zinc-500 text-sm mt-3 leading-relaxed px-1">
+                    Live Commentary. Timestamped scene analysis and tags as the run plays.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
