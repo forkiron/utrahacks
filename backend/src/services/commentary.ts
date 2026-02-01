@@ -17,7 +17,7 @@ export interface CommentaryContext {
   lastCommentaryHash?: string;
 }
 
-const GEMINI_TIMEOUT_MS = 4000;
+const GEMINI_TIMEOUT_MS = 12000;
 const VALID_ACTIONS = new Set([
   "stable",
   "drifting_left",
@@ -31,9 +31,21 @@ const VALID_ACTIONS = new Set([
   "unknown",
 ]);
 
-const GEMINI_PROMPT = `Sports commentator for a robotics run. Return ONLY valid JSON, no other text:
-{"action":"stable|drifting_left|drifting_right|approaching_obstacle|line_lost|line_weak|climbing|stuck|recovery|unknown","commentary":"one sentence 9-16 words","confidence":0.0-1.0,"tags":["tag1","tag2"]}
-Phrase style: "Coming up on ___ — ___" | "Looks like ___ — ___" | "Nice ___ — ___" | "Oh, ___… but ___" | optional one-word pop: "WOW — ___". At most ONE word in CAPS. If unsure, say "looks like" or "seems". Describe ONLY what is plausible in the image; do not invent ramps, obstacles, or objects. One sentence, 9-16 words, end with . ! or ?`;
+const GEMINI_PROMPT = `You are a sports commentator for a robotics run. Look at the image and describe what the robot is doing in one short sentence (9-16 words). Vary your line based on what you see: line position, obstacles, speed, curve, blur, empty track, etc. Do not repeat the same generic phrase.
+
+You MUST ground your comment in what is visible in the image. Mention at least one visible cue (line position, curve, obstacle, blur, empty track, off-center robot, etc.). If the image is unclear or empty, say so explicitly and set action to "unknown".
+Avoid generic filler like "steady running" unless the image clearly supports it.
+Use plain ASCII characters only (no emojis, no em dash).
+
+Return exactly one JSON object with these keys only:
+- "action": one of stable, drifting_left, drifting_right, approaching_obstacle, line_lost, line_weak, climbing, stuck, recovery, unknown
+- "commentary": your one-sentence comment (e.g. "Looks like they're drifting left - tighten that turn." or "Nice and steady through this section.")
+- "confidence": number between 0.0 and 1.0
+- "tags": array of 0-3 short strings (e.g. "line", "obstacle", "curve")
+
+Example format: {"action":"stable","commentary":"Centered on the line, slight left curve ahead.","confidence":0.85,"tags":["line","curve"]}
+
+Output only the JSON object, no other text or markdown.`;
 
 let genAISingleton: GoogleGenerativeAI | null = null;
 let modelSingleton: ReturnType<GoogleGenerativeAI["getGenerativeModel"]> | null = null;
@@ -41,7 +53,13 @@ let modelSingleton: ReturnType<GoogleGenerativeAI["getGenerativeModel"]> | null 
 function getModel(apiKey: string) {
   if (!modelSingleton) {
     genAISingleton = new GoogleGenerativeAI(apiKey);
-    modelSingleton = genAISingleton.getGenerativeModel({ model: "gemini-2.5-flash" });
+    modelSingleton = genAISingleton.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+        maxOutputTokens: 256,
+      },
+    });
   }
   return modelSingleton;
 }
@@ -61,52 +79,52 @@ function pruneGeminiCache() {
 
 const REPHRASE_BY_ACTION: Record<string, string[]> = {
   stable: ["Smooth and centered through here.", "Steady run, no drama.", "Holding the line nicely."],
-  drifting_left: ["Looks like they're drifting left — tighten that turn.", "Left pull — small correction needed."],
-  drifting_right: ["Drifting right — stay centered.", "Right bias — ease it back."],
-  approaching_obstacle: ["Looks like an obstacle — careful steering.", "Something in the way — slow it down."],
-  line_lost: ["Lost the line — but they're fighting back.", "Line's gone — recovery mode."],
-  line_weak: ["Line looks faint — slow down and find it.", "Tracking's shaky — stay patient."],
-  climbing: ["Still climbing… steady.", "Working their way up."],
-  stuck: ["Looks stuck — can they get free?", "Oh, stuck… but they're trying."],
-  recovery: ["Recovering — nice save.", "Fighting back into control."],
-  unknown: ["Unclear from here — we'll see.", "Looks like they're adjusting."],
+  drifting_left: ["Looks like they're drifting left - tighten that turn.", "Left pull - small correction needed."],
+  drifting_right: ["Drifting right - stay centered.", "Right bias - ease it back."],
+  approaching_obstacle: ["Looks like an obstacle - careful steering.", "Something in the way - slow it down."],
+  line_lost: ["Lost the line - but they're fighting back.", "Line's gone - recovery mode."],
+  line_weak: ["Line looks faint - slow down and find it.", "Tracking's shaky - stay patient."],
+  climbing: ["Still climbing... steady.", "Working their way up."],
+  stuck: ["Looks stuck - can they get free?", "Oh, stuck... but they're trying."],
+  recovery: ["Recovering - nice save.", "Fighting back into control."],
+  unknown: ["Unclear from here - we'll see.", "Looks like they're adjusting."],
 };
 
 const GENERIC_LINES = [
   "Smooth and centered through this section.",
   "Steady run here, nice control.",
   "Holding the line, looks good.",
-  "Clean and smooth — no drama.",
+  "Clean and smooth - no drama.",
 ];
 
 const DRIFT_LEFT_LINES = [
-  "Looks like they're drifting left — tighten that turn.",
+  "Looks like they're drifting left - tighten that turn.",
   "Drifting left, small correction needed.",
-  "Left pull — stay centered.",
+  "Left pull - stay centered.",
 ];
 
 const DRIFT_RIGHT_LINES = [
-  "Drifting right — ease it back.",
-  "Right bias showing — correct and hold.",
-  "Sliding right — tighten that turn.",
+  "Drifting right - ease it back.",
+  "Right bias showing - correct and hold.",
+  "Sliding right - tighten that turn.",
 ];
 
 const LINE_WEAK_LINES = [
-  "Line looks faint — slow down and find it.",
-  "Tracking seems shaky — stay patient.",
-  "Line's weak here — easy does it.",
+  "Line looks faint - slow down and find it.",
+  "Tracking seems shaky - stay patient.",
+  "Line's weak here - easy does it.",
 ];
 
 const OBSTACLE_LINES = [
-  "Looks like an obstacle — careful steering.",
-  "Something in the way — slow it down.",
-  "Obstacle ahead — stay centered.",
+  "Looks like an obstacle - careful steering.",
+  "Something in the way - slow it down.",
+  "Obstacle ahead - stay centered.",
 ];
 
 const STRUGGLE_CLIMB_LINES = [
-  "Still climbing… steady as they go.",
-  "Working their way up — looks tough.",
-  "Climbing — slow and controlled.",
+  "Still climbing... steady as they go.",
+  "Working their way up - looks tough.",
+  "Climbing - slow and controlled.",
 ];
 
 function sanitizeCommentary(text: string): string {
@@ -220,7 +238,14 @@ async function generateMockCommentary(
   };
 }
 
-type GeminiParsed = { action?: string; commentary: string; confidence?: number; tags?: string[] };
+type GeminiParsed = {
+  action?: string;
+  commentary?: string;
+  comment?: string;
+  text?: string;
+  confidence?: number;
+  tags?: string[];
+};
 
 function parseGeminiJson(rawText: string): {
   action: string;
@@ -229,6 +254,8 @@ function parseGeminiJson(rawText: string): {
   tags: string[];
 } | null {
   const trimmed = rawText.trim();
+  if (!trimmed) return null;
+
   let parsed: GeminiParsed | null = null;
   try {
     parsed = JSON.parse(trimmed) as GeminiParsed;
@@ -238,18 +265,38 @@ function parseGeminiJson(rawText: string): {
       try {
         parsed = JSON.parse(block[0]) as GeminiParsed;
       } catch {
+        // Not JSON; if it looks like a single commentary line, use it
+        if (!trimmed.includes("{") && trimmed.length > 10 && trimmed.length < 200) {
+          return {
+            action: "unknown",
+            commentary: trimmed,
+            confidence: 0.6,
+            tags: [],
+          };
+        }
         return null;
       }
     }
   }
-  if (!parsed || typeof parsed.commentary !== "string") return null;
+
+  if (!parsed) return null;
+  const commentary =
+    typeof parsed.commentary === "string"
+      ? parsed.commentary
+      : typeof parsed.comment === "string"
+        ? parsed.comment
+        : typeof parsed.text === "string"
+          ? parsed.text
+          : null;
+  if (!commentary) return null;
+
   const action = VALID_ACTIONS.has(String(parsed.action)) ? String(parsed.action) : "unknown";
   const conf = parsed.confidence;
   const confidence = typeof conf === "number" ? Math.max(0, Math.min(1, conf)) : 0.6;
   const tags = Array.isArray(parsed.tags) ? (parsed.tags as unknown[]).filter((t: unknown) => typeof t === "string") as string[] : [];
   return {
     action,
-    commentary: parsed.commentary,
+    commentary,
     confidence,
     tags,
   };
@@ -277,9 +324,13 @@ async function generateGeminiCommentary(
   }
 
   const model = getModel(apiKey);
+  const resizedForGemini = await sharp(imageBuffer)
+    .resize(1024, 1024, { fit: "inside", withoutEnlargement: true })
+    .jpeg({ quality: 85 })
+    .toBuffer();
   const imagePart = {
     inlineData: {
-      data: imageBuffer.toString("base64"),
+      data: resizedForGemini.toString("base64"),
       mimeType: "image/jpeg",
     },
   };
@@ -291,10 +342,10 @@ async function generateGeminiCommentary(
   let rawText: string;
   try {
     const result = await Promise.race([
-      model.generateContent([GEMINI_PROMPT, imagePart]).then((r) => r.response.text()),
+      model.generateContent([GEMINI_PROMPT, imagePart]).then((r) => r.response.text() ?? ""),
       timeoutPromise,
     ]);
-    rawText = result as string;
+    rawText = (result as string)?.trim() ?? "";
   } catch (err) {
     throw err;
   }
@@ -302,7 +353,7 @@ async function generateGeminiCommentary(
   const parsed = parseGeminiJson(rawText);
   if (!parsed) {
     return {
-      text: sanitizeCommentary("Looks like steady running — we'll see."),
+      text: sanitizeCommentary("Image unclear here - cannot confirm line or obstacles."),
       tags: [],
       action: "unknown",
       confidence: 0.5,

@@ -50,3 +50,52 @@ export interface RuleResult {
   status: "PASS" | "FAIL";
   violations: string[];
 }
+
+export type AuditTrailStatus = "queued" | "processing" | "done" | "failed";
+export type AuditTrailSourceType =
+  | "judge_audio"
+  | "team_audio"
+  | "coach_audio"
+  | "uploaded_video_audio";
+
+export interface TranscriptSegment {
+  startMs: number;
+  endMs: number;
+  text: string;
+}
+
+export interface AuditTrail {
+  _id?: string;
+  runId: string;
+  sourceType: AuditTrailSourceType;
+  status: AuditTrailStatus;
+  language?: string;
+  transcriptText?: string;
+  transcriptSegments?: TranscriptSegment[];
+  confidence?: number;
+  mock: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  error?: string;
+  tags?: string[];
+  media?: { mimeType: string; sizeBytes: number; sha256: string };
+}
+
+export type AudioJobStatus = "queued" | "processing" | "done" | "failed";
+export type AudioJobType = "tts" | "sfx" | "dub";
+
+export interface AudioJob {
+  _id?: string;
+  jobType: AudioJobType;
+  status: AudioJobStatus;
+  language?: string;
+  voiceProfile?: string;
+  inputText?: string;
+  inputMeta?: unknown;
+  output?: { mimeType: string; audioBase64: string };
+  mock: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  error?: string;
+  tags?: string[];
+}
