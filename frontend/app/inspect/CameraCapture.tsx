@@ -94,7 +94,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
     const canvas = document.createElement("canvas");
     canvas.width = w;
     canvas.height = h;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
     ctx.drawImage(video, 0, 0);
     applyFeedFilters(ctx, w, h, filters);
@@ -189,7 +189,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
         off.width = vw;
         off.height = vh;
       }
-      const offCtx = off.getContext("2d");
+      const offCtx = off.getContext("2d", { willReadFrequently: true });
       if (!offCtx) {
         rafRef.current = requestAnimationFrame(tick);
         return;
@@ -201,7 +201,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
       const scale = Math.max(cw / vw, ch / vh);
       const offsetX = (cw - scale * vw) / 2;
       const offsetY = (ch - scale * vh) / 2;
-      const fctx = feedCanvas.getContext("2d");
+      const fctx = feedCanvas.getContext("2d", { willReadFrequently: true });
       if (!fctx) {
         rafRef.current = requestAnimationFrame(tick);
         return;
@@ -213,7 +213,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
           blurCanvas.width = vw;
           blurCanvas.height = vh;
         }
-        const bctx = blurCanvas.getContext("2d");
+        const bctx = blurCanvas.getContext("2d", { willReadFrequently: true });
         if (bctx) {
           bctx.filter = `blur(${BLUR_PX}px)`;
           bctx.drawImage(off, 0, 0);
@@ -260,7 +260,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
     if (!cw || !ch) return;
     overlay.width = cw;
     overlay.height = ch;
-    const ctx = overlay.getContext("2d");
+    const ctx = overlay.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
     ctx.clearRect(0, 0, cw, ch);
 
@@ -327,7 +327,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
     const canvas = document.createElement("canvas");
     canvas.width = w;
     canvas.height = h;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
     ctx.drawImage(video, 0, 0);
     applyFeedFilters(ctx, w, h, filters);
