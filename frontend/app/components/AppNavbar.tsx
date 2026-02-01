@@ -16,11 +16,11 @@ export default function AppNavbar() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-900/95 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0f0f0f]/95 backdrop-blur font-sans">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link
           href="/"
-          className="font-[cursive] text-white text-2xl tracking-tight hover:text-white/90 transition-colors"
+          className="font-sans text-white text-xl font-semibold tracking-tight hover:text-white/90 transition-colors"
         >
           Sentinel
         </Link>

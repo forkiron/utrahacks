@@ -16,29 +16,18 @@ export default function Home() {
         <div className="absolute inset-0 bg-black/35" aria-hidden />
       </div>
 
-      {/* Navbar: Sentinel + feature links */}
+      {/* Navbar: Sentinel + Try now */}
       <header className="sticky top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link
-            href="/"
-            className="font-[cursive] text-white text-2xl tracking-tight hover:text-white/90 transition-colors"
-          >
+          <span className="font-[cursive] text-white text-2xl tracking-tight">
             Sentinel
+          </span>
+          <Link
+            href="/inspect"
+            className="px-4 py-2 text-sm font-medium text-white border border-white/40 rounded-lg hover:bg-white/10 transition-all"
+          >
+            Try now
           </Link>
-          <nav className="flex items-center gap-2">
-            <Link
-              href="/coach"
-              className="px-4 py-2 text-sm font-medium text-white/90 hover:text-white border border-transparent hover:border-white/30 rounded-lg hover:bg-white/5 transition-all"
-            >
-              Commentary
-            </Link>
-            <Link
-              href="/inspect"
-              className="px-4 py-2 text-sm font-medium text-white border border-white/40 rounded-lg hover:bg-white/10 transition-all"
-            >
-              Bot Security
-            </Link>
-          </nav>
         </div>
       </header>
 

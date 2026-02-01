@@ -260,17 +260,17 @@ export default function LiveCoachPlayer() {
   const geminiDisabled = geminiAvailable === false;
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+    <div className="space-y-6 font-sans">
+      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5">
         <div className="flex flex-col gap-4">
-          <label className="text-sm font-medium text-zinc-300">
+          <label className="text-xs font-medium uppercase tracking-wide text-zinc-500">
             Upload run video (mp4/webm)
           </label>
           <input
             type="file"
             accept="video/mp4,video/webm"
             onChange={(e) => onFileChange(e.target.files?.[0] ?? null)}
-            className="text-sm text-zinc-300 file:mr-4 file:rounded-full file:border-0 file:bg-amber-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-zinc-900 hover:file:bg-amber-400"
+            className="text-sm text-zinc-300 file:mr-4 file:rounded-xl file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-semibold file:text-zinc-950 hover:file:bg-zinc-100"
           />
           <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-400">
             <label className="flex items-center gap-2">
@@ -278,49 +278,49 @@ export default function LiveCoachPlayer() {
                 type="checkbox"
                 checked={liveEnabled}
                 onChange={(e) => setLiveEnabled(e.target.checked)}
-                className="h-4 w-4 accent-amber-500"
+                className="h-4 w-4 rounded border-white/20 accent-white"
               />
               Live commentary
             </label>
             {geminiDisabled && (
-              <span className="rounded-full bg-zinc-800 px-3 py-1 text-xs">
+              <span className="rounded-lg bg-white/5 border border-white/5 px-3 py-1 text-xs text-zinc-500">
                 Gemini disabled (mock mode)
               </span>
             )}
             {!ttsAvailable && (
-              <span className="rounded-full bg-zinc-800 px-3 py-1 text-xs">
+              <span className="rounded-lg bg-white/5 border border-white/5 px-3 py-1 text-xs text-zinc-500">
                 ElevenLabs not configured
               </span>
             )}
             {currentLabel && (
-              <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs text-amber-200">
+              <span className="rounded-lg bg-white/10 border border-white/5 px-3 py-1 text-xs text-zinc-200">
                 {currentLabel}
               </span>
             )}
           </div>
-          {status && <p className="text-sm text-amber-200">{status}</p>}
+          {status && <p className="text-sm text-zinc-300">{status}</p>}
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
           {videoUrl ? (
             <video
               ref={videoRef}
               src={videoUrl}
               controls
-              className="w-full rounded-xl border border-zinc-800 bg-black"
+              className="w-full rounded-xl border border-white/10 bg-black"
               onPlay={() => setStatus("")}
             />
           ) : (
-            <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-zinc-800 text-sm text-zinc-500">
+            <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-white/10 bg-black/30 text-sm text-zinc-500">
               Upload a run video to start live commentary.
             </div>
           )}
         </div>
 
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
-          <h2 className="text-sm font-semibold text-zinc-200 mb-3">
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+          <h2 className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
             Commentary timeline
           </h2>
           <div className="space-y-3 max-h-[420px] overflow-y-auto pr-2">
@@ -332,7 +332,7 @@ export default function LiveCoachPlayer() {
             {events.map((evt) => (
               <div
                 key={evt.id}
-                className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3"
+                className="rounded-xl border border-white/5 bg-black/30 p-3"
               >
                 <div className="flex items-center justify-between text-xs text-zinc-500">
                   <span>{formatTime(evt.t)}</span>

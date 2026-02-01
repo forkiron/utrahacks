@@ -72,7 +72,7 @@ export default function InspectPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans">
+    <div className="min-h-screen bg-[#0f0f0f] text-zinc-100 font-sans">
       <AppNavbar />
 
       <main className="max-w-2xl mx-auto px-6 py-8">
@@ -85,9 +85,9 @@ export default function InspectPage() {
           />
         )}
         {step === "analyzing" && (
-          <div className="flex flex-col items-center justify-center py-24 gap-6">
-            <div className="w-16 h-16 border-4 border-amber-500/50 border-t-amber-500 rounded-full animate-spin" />
-            <p className="text-zinc-400">
+          <div className="flex flex-col items-center justify-center py-24 gap-6 font-sans">
+            <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin" />
+            <p className="text-sm text-zinc-400">
               Running CV detection + Gemini analysis...
             </p>
           </div>

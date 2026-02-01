@@ -301,14 +301,14 @@ export default function LiveCoach() {
   }, [stream]);
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+    <div className="space-y-6 font-sans">
+      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5">
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-4">
             <button
               type="button"
               onClick={started ? handleStop : handleStart}
-              className="rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50"
+              className="rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-zinc-100 disabled:opacity-50 transition-colors"
             >
               {started ? "Stop" : "Start"}
             </button>
@@ -317,7 +317,7 @@ export default function LiveCoach() {
                 type="checkbox"
                 checked={commentaryOn}
                 onChange={(e) => setCommentaryOn(e.target.checked)}
-                className="h-4 w-4 accent-amber-500"
+                className="h-4 w-4 rounded border-white/20 accent-white"
                 disabled={!started}
               />
               Commentary On
@@ -325,38 +325,38 @@ export default function LiveCoach() {
           </div>
           <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-400">
             {geminiEnabled === true && (
-              <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs text-emerald-300">
+              <span className="rounded-lg bg-white/10 border border-white/5 px-3 py-1 text-xs text-zinc-200">
                 Gemini enabled
               </span>
             )}
             {geminiEnabled === false && (
-              <span className="rounded-full bg-zinc-800 px-3 py-1 text-xs">
+              <span className="rounded-lg bg-white/5 border border-white/5 px-3 py-1 text-xs text-zinc-500">
                 Gemini disabled (mock)
               </span>
             )}
             {elevenLabsEnabled === false && (
-              <span className="rounded-full bg-amber-500/20 px-3 py-1 text-xs text-amber-200">
+              <span className="rounded-lg bg-white/5 border border-white/5 px-3 py-1 text-xs text-zinc-400">
                 ElevenLabs disabled
               </span>
             )}
             {lastLatencyMs != null && (
-              <span className="rounded-full bg-zinc-800 px-3 py-1 text-xs">
+              <span className="rounded-lg bg-white/5 border border-white/5 px-3 py-1 text-xs text-zinc-500">
                 Last latency: {lastLatencyMs}ms
               </span>
             )}
-            <span className="rounded-full bg-zinc-800 px-3 py-1 text-xs">
+            <span className="rounded-lg bg-white/5 border border-white/5 px-3 py-1 text-xs text-zinc-500">
               Capture interval: {MIN_SEND_INTERVAL_MS / 1000}s
             </span>
           </div>
           {status && (
-            <p className="text-sm text-amber-200">{status}</p>
+            <p className="text-sm text-zinc-300">{status}</p>
           )}
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
-          <h2 className="mb-3 text-sm font-semibold text-zinc-200">
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+          <h2 className="mb-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
             Webcam preview
           </h2>
           {started && stream ? (
@@ -365,17 +365,17 @@ export default function LiveCoach() {
               autoPlay
               muted
               playsInline
-              className="w-full rounded-xl border border-zinc-800 bg-black aspect-video object-cover"
+              className="w-full rounded-xl border border-white/10 bg-black aspect-video object-cover"
             />
           ) : (
-            <div className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-zinc-800 bg-zinc-950/60 text-sm text-zinc-500">
+            <div className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-white/10 bg-black/30 text-sm text-zinc-500">
               Click Start to open your webcam.
             </div>
           )}
         </div>
 
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
-          <h2 className="mb-3 text-sm font-semibold text-zinc-200">
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+          <h2 className="mb-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
             Commentary
           </h2>
           <div className="max-h-[420px] space-y-3 overflow-y-auto pr-2">
@@ -387,7 +387,7 @@ export default function LiveCoach() {
             {events.map((evt) => (
               <div
                 key={evt.eventId}
-                className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3"
+                className="rounded-xl border border-white/5 bg-black/30 p-3"
               >
                 <div className="flex items-center justify-between text-xs text-zinc-500">
                   <span>{formatTime(evt.t)}</span>

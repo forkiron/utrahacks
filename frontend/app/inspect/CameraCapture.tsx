@@ -368,16 +368,16 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       <div
         ref={containerRef}
-        className="rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden aspect-video flex items-center justify-center relative"
+        className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur overflow-hidden aspect-video flex items-center justify-center relative"
       >
         {!stream && (
           <div className="text-center p-8">
             <button
               onClick={startCamera}
-              className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold rounded-lg transition-colors"
+              className="px-6 py-3 bg-white text-zinc-950 font-semibold rounded-xl hover:bg-zinc-100 transition-colors text-sm"
             >
               Start Camera
             </button>
@@ -385,7 +385,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
               Live detection runs when camera is on. Snapshot only when you want
               to capture.
             </p>
-            <label className="mt-2 inline-block px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg cursor-pointer text-sm">
+            <label className="mt-2 inline-block px-6 py-3 bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl cursor-pointer text-sm">
               Upload from device
               <input
                 type="file"
@@ -424,7 +424,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
         />
         {stream && (
           <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center gap-2 z-10">
-            <div className="flex flex-wrap items-center justify-center gap-2 text-xs bg-zinc-900/80 px-3 py-1.5 rounded">
+            <div className="flex flex-wrap items-center justify-center gap-2 text-xs bg-black/40 backdrop-blur px-3 py-1.5 rounded-lg border border-white/5">
               <span className="text-zinc-500 shrink-0">Filters:</span>
               <label className="flex items-center gap-1.5 text-zinc-300 cursor-pointer">
                 <input
@@ -459,7 +459,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
               </label>
             </div>
             <div className="flex flex-col items-center gap-1.5">
-              <label className="flex items-center gap-2 text-xs text-zinc-300 bg-zinc-900/80 px-3 py-1.5 rounded cursor-pointer">
+              <label className="flex items-center gap-2 text-xs text-zinc-300 bg-black/40 backdrop-blur px-3 py-1.5 rounded-lg border border-white/5 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={useYoloWheel}
@@ -469,7 +469,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
                 Wheel (YOLO) — live test
               </label>
               {useYoloWheel && (
-                <label className="flex items-center gap-2 text-xs text-zinc-400 bg-zinc-900/80 px-3 py-1.5 rounded w-full max-w-[220px]" title="Lower = more boxes (5–15% is fine for demo)">
+                <label className="flex items-center gap-2 text-xs text-zinc-400 bg-black/40 backdrop-blur px-3 py-1.5 rounded-lg border border-white/5 w-full max-w-[220px]" title="Lower = more boxes (5–15% is fine for demo)">
                   <span className="shrink-0">Min conf:</span>
                   <input
                     type="range"
@@ -485,13 +485,13 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
               )}
             </div>
             {detecting && (
-              <span className="text-xs text-amber-400/90 bg-zinc-900/80 px-2 py-1 rounded">
+              <span className="text-xs text-zinc-200 bg-black/40 backdrop-blur px-2 py-1 rounded-lg border border-white/5">
                 {useYoloWheel ? "Detecting wheels…" : "Detecting components…"}
               </span>
             )}
             <button
               onClick={capture}
-              className="w-16 h-16 rounded-full bg-white/90 border-4 border-zinc-800 hover:scale-105 transition-transform"
+              className="w-16 h-16 rounded-full bg-white border-2 border-white/20 hover:scale-105 transition-transform shadow-lg"
               title="Snapshot (capture this frame)"
             />
             <span className="text-xs text-zinc-400">Snapshot</span>
@@ -500,8 +500,8 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
       </div>
 
       {captured.length > 0 && (
-        <div>
-          <p className="text-sm text-zinc-400 mb-2">
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-2">
             {captured.length} snapshot{captured.length !== 1 ? "s" : ""} (3–5
             recommended)
           </p>
@@ -511,7 +511,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
                 <img
                   src={img.preview}
                   alt=""
-                  className="w-20 h-20 object-cover rounded-lg border border-zinc-700"
+                  className="w-20 h-20 object-cover rounded-lg border border-white/10"
                 />
                 <button
                   onClick={() => removeImage(img.id)}
@@ -527,7 +527,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
 
       {!stream && captured.length > 0 && (
         <div className="flex gap-2">
-          <label className="flex-1 px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-center cursor-pointer text-sm">
+          <label className="flex-1 px-4 py-3 bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl text-center cursor-pointer text-sm font-sans">
             Add more images
             <input
               type="file"
@@ -543,7 +543,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
       {stream && (
         <button
           onClick={stopCamera}
-          className="w-full py-2 text-zinc-400 hover:text-zinc-300 text-sm"
+          className="w-full py-2 text-zinc-500 hover:text-zinc-300 text-sm font-sans"
         >
           Stop camera
         </button>
@@ -552,7 +552,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
       {captured.length >= 1 && (
         <button
           onClick={handleComplete}
-          className="w-full py-4 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold rounded-xl transition-colors"
+          className="w-full py-4 bg-white text-zinc-950 font-semibold rounded-xl hover:bg-zinc-100 transition-colors text-sm font-sans"
         >
           Continue with {captured.length} image
           {captured.length !== 1 ? "s" : ""}

@@ -22,17 +22,17 @@ export default function AnalysisResults({
   const isPass = result.status === "PASS";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       <div
-        className={`rounded-xl p-6 ${
+        className={`rounded-2xl p-6 backdrop-blur border ${
           isPass
-            ? "bg-emerald-500/20 border border-emerald-500/50"
-            : "bg-red-500/20 border border-red-500/50"
+            ? "bg-emerald-500/10 border-white/10"
+            : "bg-red-500/10 border-white/10"
         }`}
       >
-        <p className="text-sm font-medium text-zinc-400">Result</p>
+        <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Result</p>
         <p
-          className={`text-3xl font-bold ${
+          className={`text-2xl font-semibold mt-1 ${
             isPass ? "text-emerald-400" : "text-red-400"
           }`}
         >
@@ -49,18 +49,18 @@ export default function AnalysisResults({
         )}
       </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
-        <p className="text-sm font-medium text-zinc-400 mb-3">
+      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
           Detected components
         </p>
         <div className="space-y-2">
           {components.map((c, i) => (
             <div
               key={i}
-              className="flex justify-between items-center py-2 border-b border-zinc-800 last:border-0"
+              className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0 text-sm"
             >
-              <span className="font-medium">{c.name}</span>
-              <span className="text-zinc-500 text-sm">
+              <span className="font-medium text-zinc-200">{c.name}</span>
+              <span className="text-zinc-500">
                 {c.type} × {c.count}
               </span>
             </div>
@@ -68,27 +68,27 @@ export default function AnalysisResults({
         </div>
       </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
-        <p className="text-sm font-medium text-zinc-400 mb-2">Robot ID</p>
+      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-2">Robot ID</p>
         <input
           type="text"
           value={robotId}
           onChange={(e) => setRobotId(e.target.value)}
           placeholder="e.g. TEAM17-BOT-A"
-          className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="w-full px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 font-sans text-sm"
         />
       </div>
 
       <div className="flex gap-3">
         <button
           onClick={onBack}
-          className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl font-medium transition-colors"
+          className="flex-1 py-3 bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl font-medium text-sm transition-colors font-sans"
         >
           Back
         </button>
         <button
           onClick={onFinalize}
-          className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold rounded-xl transition-colors"
+          className="flex-1 py-3 bg-white text-zinc-950 font-semibold rounded-xl hover:bg-zinc-100 transition-colors text-sm font-sans"
         >
           Finalize Inspection
         </button>

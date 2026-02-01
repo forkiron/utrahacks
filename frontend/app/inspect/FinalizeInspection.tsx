@@ -59,12 +59,10 @@ export default function FinalizeInspection({
 
   if (result) {
     return (
-      <div className="space-y-6 text-center">
-        <div className="rounded-xl border border-emerald-500/50 bg-emerald-500/10 p-8">
-          <p className="text-emerald-400 font-semibold text-lg">
-            Inspection finalized
-          </p>
-          <p className="text-2xl font-mono font-bold mt-2 text-zinc-100">
+      <div className="space-y-6 text-center font-sans">
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-8">
+          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Inspection finalized</p>
+          <p className="text-xl font-mono font-semibold mt-2 text-zinc-100">
             {result.inspection_id}
           </p>
           <p className="text-sm text-zinc-500 mt-1">
@@ -75,7 +73,7 @@ export default function FinalizeInspection({
               href={`https://explorer.solana.com/tx/${result.solana_tx}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-amber-400 hover:underline text-sm mt-2 block"
+              className="text-zinc-300 hover:text-white hover:underline text-sm mt-2 inline-block"
             >
               View on Solana Explorer →
             </a>
@@ -87,7 +85,7 @@ export default function FinalizeInspection({
 
         <button
           onClick={onDone}
-          className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold rounded-xl"
+          className="w-full py-3 bg-white text-zinc-950 font-semibold rounded-xl hover:bg-zinc-100 transition-colors text-sm"
         >
           New Inspection
         </button>
@@ -96,13 +94,13 @@ export default function FinalizeInspection({
   }
 
   return (
-    <div className="space-y-6">
-      <p className="text-zinc-400 text-sm">
+    <div className="space-y-6 font-sans">
+      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
         Finalize this inspection to create an immutable on-chain record.
       </p>
 
       {error && (
-        <div className="rounded-lg bg-red-500/20 border border-red-500/50 p-4 text-red-400 text-sm">
+        <div className="rounded-xl bg-red-500/10 border border-white/10 p-4 text-red-400 text-sm backdrop-blur">
           {error}
         </div>
       )}
@@ -110,7 +108,7 @@ export default function FinalizeInspection({
       <button
         onClick={handleFinalize}
         disabled={loading}
-        className="w-full py-4 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-950 font-semibold rounded-xl transition-colors"
+        className="w-full py-4 bg-white text-zinc-950 font-semibold rounded-xl hover:bg-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
       >
         {loading ? "Finalizing…" : "Finalize Inspection"}
       </button>
