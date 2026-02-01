@@ -3,8 +3,16 @@ import { fontClassNames } from "./assets/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Robot Inspection - UtraHacks",
-  description: "AI-powered compliance verification for robotics competitions",
+  title: "Sentinel — All-in-One Robot Competition Management",
+  description: "Sentinel: inspect, verify, live commentary, and coaching for robot competitions—with on-chain proof.",
+  icons: {
+    icon: "/unnamed.jpg",
+  },
+  openGraph: {
+    title: "Sentinel — All-in-One Robot Competition Management",
+    description: "Inspect, verify, commentary, and coaching for robot competitions—with on-chain proof.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

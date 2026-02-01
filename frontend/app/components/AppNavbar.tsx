@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 const navLinks = [
@@ -21,8 +22,15 @@ export default function AppNavbar() {
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link
           href="/"
-          className="font-[cursive] text-white text-2xl tracking-tight hover:text-white/90 transition-colors"
+          className="flex items-center gap-2 font-[cursive] text-white text-2xl tracking-tight hover:text-white/90 transition-colors"
         >
+          <Image
+            src="/unnamed.jpg"
+            alt="Sentinel"
+            width={36}
+            height={36}
+            className="h-9 w-9 rounded-full object-cover shrink-0"
+          />
           Sentinel
         </Link>
         <nav className="flex items-center gap-1">
