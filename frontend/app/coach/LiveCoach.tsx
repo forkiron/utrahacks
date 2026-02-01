@@ -138,11 +138,11 @@ export default function LiveCoach() {
   }, [playNext]);
 
   useEffect(() => {
-    if (stream && videoRef.current) {
+    if (stream && started && videoRef.current) {
       videoRef.current.srcObject = stream;
       videoRef.current.play().catch(console.error);
     }
-  }, [stream]);
+  }, [stream, started]);
 
   const captureAndMaybeSend = useCallback(async () => {
     const video = videoRef.current;
