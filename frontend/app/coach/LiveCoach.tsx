@@ -14,7 +14,7 @@ interface CommentaryEvent {
   t: number;
   text: string;
   meta?: {
-    source: "mock" | "gemini";
+    source: "mock" | "gemini" | "intro";
     latencyMs?: number;
     tags?: string[];
   };
@@ -70,6 +70,7 @@ export default function LiveCoach() {
   const audioQueueRef = useRef<string[]>([]);
   const playingRef = useRef(false);
   const lastSpokenRef = useRef<number>(0);
+  const introFinishedRef = useRef(true);
 
   const playNext = useCallback(() => {
     if (playingRef.current) return;
@@ -128,6 +129,7 @@ export default function LiveCoach() {
         audio.removeAttribute("src");
       }
       playingRef.current = false;
+      introFinishedRef.current = true;
       playNext();
     };
     audio.addEventListener("ended", onEnded);
@@ -151,6 +153,7 @@ export default function LiveCoach() {
     if (!video || !captureCanvas || !hashCanvas || !started || !stream) return;
     if (video.readyState < 2 || !video.videoWidth || !video.videoHeight) return;
     if (!commentaryOn || pendingRef.current) return;
+    if (!introFinishedRef.current) return;
 
     const now = Date.now();
     const elapsed = now - lastSentRef.current;
@@ -275,12 +278,17 @@ export default function LiveCoach() {
       sessionStartRef.current = Date.now();
       lastSentRef.current = 0;
       lastFrameDataRef.current = null;
-      setEvents([]);
       setStatus("");
       setGeminiEnabled(null);
       setLastLatencyMs(null);
 
-      // Queue intro first and start playing it before enabling live commentary
+      const introPlaceholder: CommentaryEvent = {
+        eventId: `intro-${crypto.randomUUID()}`,
+        t: 0,
+        text: "Track analysis and introduction",
+        meta: { source: "intro" },
+      };
+
       try {
         const introRes = await fetch(`${apiUrl}/api/coach/intro/audio`, {
           method: "GET",
@@ -291,11 +299,16 @@ export default function LiveCoach() {
           audioQueueRef.current.forEach((url) => URL.revokeObjectURL(url));
           audioQueueRef.current = [introUrl];
           lastSpokenRef.current = 0;
-        } else if (introRes.status === 501) {
-          setElevenLabsEnabled(false);
+          introFinishedRef.current = false;
+          setEvents([introPlaceholder]);
+        } else {
+          introFinishedRef.current = true;
+          if (introRes.status === 501) setElevenLabsEnabled(false);
+          setEvents([introPlaceholder]);
         }
       } catch {
-        // Intro audio optional; continue without it
+        introFinishedRef.current = true;
+        setEvents([introPlaceholder]);
       }
 
       setStarted(true);
@@ -325,6 +338,7 @@ export default function LiveCoach() {
       audioRef.current.load();
     }
     playingRef.current = false;
+    introFinishedRef.current = true;
     audioQueueRef.current.forEach((url) => URL.revokeObjectURL(url));
     audioQueueRef.current = [];
   }, [stream]);
@@ -421,11 +435,13 @@ export default function LiveCoach() {
                 <div className="flex items-center justify-between text-xs text-zinc-500">
                   <span>{formatTime(evt.t)}</span>
                   <span className="uppercase tracking-wide">
-                    {evt.meta?.source ?? "mock"}
+                    {evt.meta?.source === "intro"
+                      ? "intro"
+                      : evt.meta?.source ?? "mock"}
                   </span>
                 </div>
                 <p className="mt-2 text-sm text-zinc-200">{evt.text}</p>
-                {evt.meta?.tags?.length ? (
+                {evt.meta?.source !== "intro" && evt.meta?.tags?.length ? (
                   <p className="mt-2 text-xs text-zinc-500">
                     {evt.meta.tags.join(", ")}
                   </p>
