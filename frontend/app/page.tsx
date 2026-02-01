@@ -1,8 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import LandingFeatureVerify from "./components/landing/LandingFeatureVerify";
 import LandingFeatureResult from "./components/landing/LandingFeatureResult";
 import LandingFeatureDetail from "./components/landing/LandingFeatureDetail";
 import LandingFeatureCommentary from "./components/landing/LandingFeatureCommentary";
+
+function scrollToDemo() {
+  document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" });
+}
 
 export default function Home() {
   return (
@@ -35,49 +41,63 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero - judging & analysis for robotics */}
-      <main className="relative z-10 pt-32 pb-12 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="font-serif text-5xl md:text-7xl font-medium italic text-white tracking-tight leading-[1.1] drop-shadow-sm">
-            AI-powered judging and analysis for robotics
-          </h1>
-          <p className="text-lg md:text-xl text-white/90 mt-6 max-w-2xl mx-auto leading-relaxed font-sans">
-            Inspect and verify robots in minutes, not months.
-          </p>
-          <Link
-            href="/inspect"
-            className="inline-flex items-center gap-2 mt-8 px-6 py-3 bg-white text-black font-medium rounded-none hover:bg-white/90 transition-colors"
+      {/* Hero - full viewport, only hero visible (no peaking) */}
+      <main className="relative z-10 flex flex-col">
+        <section className="min-h-screen flex flex-col items-center justify-start px-6 pt-24 pb-16">
+          <div className="max-w-4xl mx-auto text-center w-full">
+            <h1 className="font-serif text-5xl md:text-7xl font-medium italic text-white tracking-tight leading-[1.1] drop-shadow-sm">
+              AI-powered judging and analysis for robotics
+            </h1>
+            <p className="text-lg md:text-xl text-white/90 mt-6 max-w-2xl mx-auto leading-relaxed font-sans">
+              Inspect and verify robots in minutes, not months.
+            </p>
+            <Link
+              href="/inspect"
+              className="inline-flex items-center gap-2 mt-8 px-6 py-3 bg-white text-black font-medium rounded-none hover:bg-white/90 transition-colors"
+            >
+              Explore Sentinel
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 17 17 7M17 7h-6M17 7v6"
+                />
+              </svg>
+            </Link>
+          </div>
+          <button
+            type="button"
+            onClick={scrollToDemo}
+            className="shrink-0 mt-auto pt-8 text-white/70 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded-full p-2"
+            aria-label="Scroll to demo"
           >
-            Explore Sentinel
             <svg
-              className="w-4 h-4"
+              className="w-6 h-6 animate-bounce"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              aria-hidden
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 17 17 7M17 7h-6M17 7v6"
-              />
+              <path d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
-          </Link>
-        </div>
+          </button>
+        </section>
 
-        {/* Features: irregular grid replicas of Verify, Result, Detail, Commentary */}
+        {/* Features grid — no heading/subtext */}
         <section
           id="demo"
-          className="relative pt-32 pb-24 px-6"
+          className="relative pt-24 pb-24 px-6"
         >
           <div className="w-full max-w-6xl mx-auto">
-            <h2 className="text-2xl font-bold text-white text-center mb-2">
-              Sentinel in action
-            </h2>
-            <p className="text-zinc-400 text-sm text-center mb-12 max-w-xl mx-auto">
-              Verify bots, inspect results, view components, and follow live commentary.
-            </p>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 min-h-[680px]">
               {/* Verify — wider (7 cols) */}
               <div className="md:col-span-7 min-h-[360px] md:min-h-0 flex flex-col">

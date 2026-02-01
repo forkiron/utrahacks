@@ -25,6 +25,14 @@ type VoiceTheme = {
   rate: number;
   pitch: number;
   className: string;
+  gradient: string; // for bg gradient
+};
+
+type MusicTrack = {
+  id: string;
+  label: string;
+  gradient: string;
+  textClass: string;
 };
 
 const DEMO_LANGS = [
@@ -46,13 +54,15 @@ const VOICE_THEMES: VoiceTheme[] = [
     rate: 0.95,
     pitch: 0.9,
     className: "text-emerald-200",
+    gradient: "from-emerald-500/20 via-emerald-500/5 to-transparent",
   },
   {
     id: "play_by_play",
     label: "Play-by-Play (fast, precise)",
     rate: 1.18,
     pitch: 1.15,
-    className: "text-sky-200",
+    className: "text-violet-200",
+    gradient: "from-violet-500/20 via-violet-500/5 to-transparent",
   },
   {
     id: "excited_caster",
@@ -60,6 +70,7 @@ const VOICE_THEMES: VoiceTheme[] = [
     rate: 1.22,
     pitch: 1.25,
     className: "text-rose-200",
+    gradient: "from-rose-500/20 via-rose-500/5 to-transparent",
   },
   {
     id: "analyst_desk",
@@ -67,6 +78,7 @@ const VOICE_THEMES: VoiceTheme[] = [
     rate: 0.92,
     pitch: 0.85,
     className: "text-amber-200",
+    gradient: "from-amber-500/20 via-amber-500/5 to-transparent",
   },
   {
     id: "sideline_reporter",
@@ -74,15 +86,16 @@ const VOICE_THEMES: VoiceTheme[] = [
     rate: 1.02,
     pitch: 1.0,
     className: "text-lime-200",
+    gradient: "from-lime-500/20 via-lime-500/5 to-transparent",
   },
 ];
 
-const MUSIC_TRACKS = [
-  { id: "none", label: "None" },
-  { id: "cinematic", label: "Cinematic" },
-  { id: "upbeat", label: "Upbeat" },
-  { id: "tension", label: "Tension" },
-  { id: "victory", label: "Victory" },
+const MUSIC_TRACKS: MusicTrack[] = [
+  { id: "none", label: "None", gradient: "from-zinc-500/10 via-transparent to-transparent", textClass: "text-zinc-400" },
+  { id: "cinematic", label: "Cinematic", gradient: "from-purple-500/20 via-purple-500/5 to-transparent", textClass: "text-purple-200" },
+  { id: "upbeat", label: "Upbeat", gradient: "from-green-500/20 via-green-500/5 to-transparent", textClass: "text-green-200" },
+  { id: "tension", label: "Tension", gradient: "from-red-500/20 via-red-500/5 to-transparent", textClass: "text-red-200" },
+  { id: "victory", label: "Victory", gradient: "from-amber-500/20 via-amber-500/5 to-transparent", textClass: "text-amber-200" },
 ];
 
 const demoTimeline: TimelineEvent[] = [
@@ -374,7 +387,6 @@ export default function LiveCoach() {
   const [sfxEnabled, setSfxEnabled] = useState(true);
   const [commentaryVolume, setCommentaryVolume] = useState(0.8);
   const [musicVolume, setMusicVolume] = useState(0.25);
-  const [captionsOn, setCaptionsOn] = useState(true);
   const [latestCaption, setLatestCaption] = useState("");
   const [status, setStatus] = useState("Press Start to begin live commentary.");
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -386,6 +398,11 @@ export default function LiveCoach() {
   const selectedTheme = useMemo(
     () => VOICE_THEMES.find((theme) => theme.id === voiceTheme) || VOICE_THEMES[0],
     [voiceTheme]
+  );
+
+  const selectedMusicTrack = useMemo(
+    () => MUSIC_TRACKS.find((t) => t.id === musicTrack) || MUSIC_TRACKS[0],
+    [musicTrack]
   );
 
   const sfxMap = useMemo<Record<SfxId, string>>(() => {
@@ -594,19 +611,20 @@ export default function LiveCoach() {
   }, [videoUrl]);
 
   return (
-    <div className="space-y-6 font-sans">
-      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className={`text-sm ${selectedTheme.className}`}>
-                {selectedTheme.label}
-              </span>
-            </div>
-          <div className="flex flex-wrap items-center gap-4">
+    <div className="space-y-6 font-sans max-w-4xl mx-auto">
+      <div className="relative rounded-lg border border-white/20 bg-black/60 backdrop-blur-sm shadow-sm p-5 overflow-hidden">
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${selectedTheme.gradient} pointer-events-none`}
+        />
+        <div className="relative z-10 flex flex-col items-center text-center gap-4">
+          <span className={`text-sm ${selectedTheme.className}`}>
+            {selectedTheme.label}
+          </span>
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <button
               type="button"
               onClick={startDemo}
-              className="rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-zinc-100 disabled:opacity-50 transition-colors"
+              className="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-zinc-200 disabled:opacity-50 transition-colors"
             >
               Start
             </button>
@@ -614,7 +632,7 @@ export default function LiveCoach() {
               <button
                 type="button"
                 onClick={stopDemo}
-                className="rounded-xl bg-white/10 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/20 transition-colors"
+                className="rounded-lg bg-white/10 border border-white/20 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/20 transition-colors"
               >
                 Pause
               </button>
@@ -623,7 +641,7 @@ export default function LiveCoach() {
               <button
                 type="button"
                 onClick={resumeDemo}
-                className="rounded-xl bg-white/10 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/20 transition-colors"
+                className="rounded-lg bg-white/10 border border-white/20 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/20 transition-colors"
               >
                 Resume
               </button>
@@ -631,72 +649,75 @@ export default function LiveCoach() {
             <button
               type="button"
               onClick={resetDemo}
-              className="rounded-xl bg-white/10 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/20 transition-colors"
+              className="rounded-lg bg-white/10 border border-white/20 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/20 transition-colors"
             >
               Reset
             </button>
           </div>
-          <div className="text-sm text-zinc-400">{status}</div>
+          <div className="text-sm text-zinc-500">{status}</div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="grid gap-3">
-            <div>
-              <label className="text-xs text-zinc-400 uppercase tracking-wide block mb-1">
-                Dubbing language
-              </label>
-              <select
-                className="w-full bg-black/40 border border-white/10 rounded-md px-3 py-2 text-sm"
-                value={dubbingLang}
-                onChange={(event) => setDubbingLang(event.target.value)}
+      <div className="rounded-lg border border-white/20 bg-black/60 backdrop-blur-sm shadow-sm p-5">
+        <div className="max-w-md mx-auto space-y-4">
+          <div>
+            <label className="text-xs text-zinc-500 uppercase tracking-wide block mb-1">
+              Dubbing language
+            </label>
+            <select
+              className="w-full bg-black border border-white/20 rounded-lg px-3 py-2.5 text-sm text-zinc-200"
+              value={dubbingLang}
+              onChange={(event) => setDubbingLang(event.target.value)}
+            >
+              {DEMO_LANGS.map((lang) => (
+                <option key={lang.id} value={lang.id}>
+                  {lang.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-zinc-500 uppercase tracking-wide block mb-1">
+              Voice selection
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => handleVoiceModeChange("default")}
+                className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium border transition-colors ${
+                  voiceMode === "default"
+                    ? "bg-white text-zinc-950 border-white"
+                    : "bg-black text-white border-white/20 hover:bg-white/10"
+                }`}
               >
-                {DEMO_LANGS.map((lang) => (
-                  <option key={lang.id} value={lang.id}>
-                    {lang.label}
-                  </option>
-                ))}
-                </select>
+                Default voice
+              </button>
+              <button
+                type="button"
+                onClick={() => handleVoiceModeChange("clone")}
+                className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium border transition-colors ${
+                  voiceMode === "clone"
+                    ? "bg-white text-zinc-950 border-white"
+                    : "bg-black text-white border-white/20 hover:bg-white/10"
+                }`}
+              >
+                Voice clone
+              </button>
             </div>
-            <div>
-              <label className="text-xs text-zinc-400 uppercase tracking-wide block mb-1">
-                Voice selection
-              </label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleVoiceModeChange("default")}
-                  className={`flex-1 rounded-md px-3 py-2 text-sm font-medium border transition-colors ${
-                    voiceMode === "default"
-                      ? "bg-white text-zinc-950 border-white"
-                      : "bg-white/10 text-white border-white/10 hover:bg-white/20"
-                  }`}
-                >
-                  Default voice
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleVoiceModeChange("clone")}
-                  className={`flex-1 rounded-md px-3 py-2 text-sm font-medium border transition-colors ${
-                    voiceMode === "clone"
-                      ? "bg-white text-zinc-950 border-white"
-                      : "bg-white/10 text-white border-white/10 hover:bg-white/20"
-                  }`}
-                >
-                  Voice clone
-                </button>
-              </div>
-              <p className="text-xs text-zinc-500 mt-2">
-                Voice clone requires permission verification.
-              </p>
-            </div>
-            <div>
-              <label className="text-xs text-zinc-400 uppercase tracking-wide block mb-1">
+            <p className="text-xs text-zinc-600 mt-2">
+              Voice clone requires permission verification.
+            </p>
+          </div>
+          <div className="relative rounded-lg overflow-hidden">
+            <div
+              className={`absolute inset-0 bg-gradient-to-br ${selectedTheme.gradient} pointer-events-none`}
+            />
+            <div className="relative z-10 p-4">
+              <label className="text-xs text-zinc-500 uppercase tracking-wide block mb-1">
                 Voice theme
               </label>
               <select
-                className="w-full bg-black/40 border border-white/10 rounded-md px-3 py-2 text-sm"
+                className={`w-full bg-black/80 border border-white/20 rounded-lg px-3 py-2.5 text-sm ${selectedTheme.className}`}
                 value={voiceTheme}
                 onChange={(event) => setVoiceTheme(event.target.value)}
               >
@@ -707,12 +728,17 @@ export default function LiveCoach() {
                 ))}
               </select>
             </div>
-            <div>
-              <label className="text-xs text-zinc-400 uppercase tracking-wide block mb-1">
+          </div>
+          <div className="relative rounded-lg overflow-hidden">
+            <div
+              className={`absolute inset-0 bg-gradient-to-tr ${selectedMusicTrack.gradient} pointer-events-none`}
+            />
+            <div className="relative z-10 p-4">
+              <label className="text-xs text-zinc-500 uppercase tracking-wide block mb-1">
                 Background music
               </label>
               <select
-                className="w-full bg-black/40 border border-white/10 rounded-md px-3 py-2 text-sm"
+                className={`w-full bg-black/80 border border-white/20 rounded-lg px-3 py-2.5 text-sm ${selectedMusicTrack.textClass}`}
                 value={musicTrack}
                 onChange={(event) => setMusicTrack(event.target.value)}
               >
@@ -723,56 +749,49 @@ export default function LiveCoach() {
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <label className="flex items-center gap-2 text-sm text-zinc-300">
-                <input
-                  type="checkbox"
-                  checked={sfxEnabled}
-                  onChange={(event) => setSfxEnabled(event.target.checked)}
-                />
-                SFX on/off
-              </label>
-              <label className="flex items-center gap-2 text-sm text-zinc-300">
-                <input
-                  type="checkbox"
-                  checked={captionsOn}
-                  onChange={(event) => setCaptionsOn(event.target.checked)}
-                />
-                Captions on/off
-              </label>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <label className="text-xs text-zinc-400 uppercase tracking-wide">
-                Commentary volume
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.05"
-                  value={commentaryVolume}
-                  onChange={(event) => setCommentaryVolume(Number(event.target.value))}
-                  className="w-full"
-                />
-              </label>
-              <label className="text-xs text-zinc-400 uppercase tracking-wide">
-                Music volume
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.05"
-                  value={musicVolume}
-                  onChange={(event) => setMusicVolume(Number(event.target.value))}
-                  className="w-full"
-                />
-              </label>
-            </div>
+          </div>
+          <div className="flex items-center justify-center">
+            <label className="flex items-center gap-2 text-sm text-zinc-400">
+              <input
+                type="checkbox"
+                checked={sfxEnabled}
+                onChange={(event) => setSfxEnabled(event.target.checked)}
+                className="w-4 h-4 rounded border-white/20 bg-black accent-white"
+              />
+              SFX on/off
+            </label>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <label className="text-xs text-zinc-500 uppercase tracking-wide">
+              Commentary volume
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={commentaryVolume}
+                onChange={(event) => setCommentaryVolume(Number(event.target.value))}
+                className="w-full mt-2 accent-white"
+              />
+            </label>
+            <label className="text-xs text-zinc-500 uppercase tracking-wide">
+              Music volume
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={musicVolume}
+                onChange={(event) => setMusicVolume(Number(event.target.value))}
+                className="w-full mt-2 accent-white"
+              />
+            </label>
           </div>
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-        <div className="rounded-lg border border-white/20 bg-black shadow-sm p-4">
+        <div className="rounded-lg border border-white/20 bg-black/60 backdrop-blur-sm shadow-sm p-4">
           <h2 className="mb-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
             Live camera feed
           </h2>
@@ -782,7 +801,7 @@ export default function LiveCoach() {
               autoPlay={false}
               muted
               playsInline
-              className="w-full rounded-xl border border-white/10 bg-black aspect-video object-cover"
+              className="w-full rounded-lg border border-white/20 bg-black aspect-video object-cover"
               src={videoUrl || undefined}
               onTimeUpdate={handleTimeUpdate}
               onEnded={handleVideoEnded}
@@ -790,46 +809,46 @@ export default function LiveCoach() {
               controlsList="nodownload noplaybackrate"
               disablePictureInPicture
             />
-            {captionsOn && latestCaption && (
-              <div className="absolute bottom-3 left-3 right-3 bg-black/60 text-white text-sm px-3 py-2 rounded-md">
+            {latestCaption && (
+              <div className="absolute bottom-3 left-3 right-3 bg-black/80 border border-white/10 text-white text-sm px-3 py-2 rounded-lg">
                 {latestCaption}
               </div>
             )}
-            <div className="absolute top-3 left-3 inline-flex items-center gap-2 bg-black/70 text-xs text-red-200 px-2 py-1 rounded-full">
+            <div className="absolute top-3 left-3 inline-flex items-center gap-2 bg-black/80 border border-white/10 text-xs text-red-300 px-2.5 py-1 rounded-lg">
               <span className="h-2 w-2 rounded-full bg-red-400 animate-pulse" />
               LIVE
             </div>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+        <div className="rounded-lg border border-white/20 bg-black/60 backdrop-blur-sm shadow-sm p-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
               Commentary Log
             </h2>
-            <span className={`text-xs ${selectedTheme.className}`}>
+            <span className="text-xs text-zinc-400">
               {selectedTheme.label}
             </span>
           </div>
           <div
             ref={logRef}
-            className="mt-4 max-h-[420px] space-y-3 overflow-y-auto rounded-lg border border-white/10 bg-black/40 px-4 py-3"
+            className="mt-4 max-h-[420px] space-y-3 overflow-y-auto rounded-lg border border-white/20 bg-black px-4 py-3"
           >
             {log.length === 0 && (
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-zinc-600">
                 Commentary appears here as the demo plays.
               </p>
             )}
             {log.map((entry, index) => (
               <div
                 key={`${entry.event.id}-${index}`}
-                className="rounded-xl border border-white/5 bg-black/30 p-3"
+                className="rounded-lg border border-white/10 bg-white/5 p-3"
               >
                 <div className="flex items-center justify-between text-xs text-zinc-500">
                   <span>{formatTime(entry.time)}</span>
                   <span className="uppercase tracking-wide">{entry.event.label}</span>
                 </div>
-                <p className="mt-2 text-sm text-zinc-200">{entry.text}</p>
+                <p className="mt-2 text-sm text-zinc-300">{entry.text}</p>
               </div>
             ))}
           </div>
@@ -838,17 +857,17 @@ export default function LiveCoach() {
 
       <audio ref={musicRef} />
       {showEthicsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#111] p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4">
+          <div className="w-full max-w-md rounded-lg border border-white/20 bg-black p-6 space-y-4 shadow-2xl">
             <h3 className="text-lg font-semibold text-white">Voice Clone Ethics</h3>
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-zinc-500">
               Confirm you have explicit permission to use this voice in this
               recording and any generated commentary.
             </p>
-            <label className="flex items-start gap-3 text-sm text-zinc-200">
+            <label className="flex items-start gap-3 text-sm text-zinc-300">
               <input
                 type="checkbox"
-                className="mt-1"
+                className="mt-1 w-4 h-4 rounded border-white/20 bg-black accent-white"
                 checked={ethicsConfirmed}
                 onChange={(event) => setEthicsConfirmed(event.target.checked)}
               />
@@ -863,7 +882,7 @@ export default function LiveCoach() {
                     setVoiceMode("default");
                   }
                 }}
-                className="px-4 py-2 text-sm rounded-md bg-white/10 text-white hover:bg-white/20"
+                className="px-4 py-2.5 text-sm rounded-lg border border-white/20 bg-black text-white hover:bg-white/10 transition-colors"
               >
                 Cancel
               </button>
@@ -874,10 +893,10 @@ export default function LiveCoach() {
                     setShowEthicsModal(false);
                   }
                 }}
-                className={`px-4 py-2 text-sm rounded-md font-medium ${
+                className={`px-4 py-2.5 text-sm rounded-lg font-medium transition-colors ${
                   ethicsConfirmed
-                    ? "bg-white text-zinc-950 hover:bg-zinc-100"
-                    : "bg-white/10 text-zinc-500 cursor-not-allowed"
+                    ? "bg-white text-zinc-950 hover:bg-zinc-200"
+                    : "bg-white/10 text-zinc-600 cursor-not-allowed border border-white/10"
                 }`}
                 disabled={!ethicsConfirmed}
               >
