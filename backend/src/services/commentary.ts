@@ -42,7 +42,7 @@ function getModel(apiKey: string) {
   if (!modelSingleton) {
     genAISingleton = new GoogleGenerativeAI(apiKey);
     modelSingleton = genAISingleton.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       generationConfig: {
         responseMimeType: "application/json",
       },
