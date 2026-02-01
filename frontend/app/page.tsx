@@ -22,12 +22,20 @@ export default function Home() {
           <span className="font-[cursive] text-white text-2xl tracking-tight">
             Sentinel
           </span>
-          <Link
-            href="/inspect"
-            className="px-4 py-2 text-sm font-medium text-white border border-white/40 rounded-lg hover:bg-white/10 transition-all"
-          >
-            Try now
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/audio-tools"
+              className="px-4 py-2 text-sm font-medium text-white/90 border border-white/25 rounded-lg hover:bg-white/10 transition-all"
+            >
+              Audio tools
+            </Link>
+            <Link
+              href="/inspect"
+              className="px-4 py-2 text-sm font-medium text-white border border-white/40 rounded-lg hover:bg-white/10 transition-all"
+            >
+              Try now
+            </Link>
+          </div>
         </div>
       </header>
 
