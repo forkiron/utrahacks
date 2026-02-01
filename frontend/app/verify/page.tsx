@@ -11,6 +11,7 @@ interface InspectionRecord {
   result: "PASS" | "FAIL";
   evidence_hash: string;
   solana_tx?: string;
+  solana_cluster?: string | null;
   encrypted_on_chain?: boolean;
   timestamp: number;
 }
@@ -90,7 +91,9 @@ export default function VerifyLandingPage() {
                 const isPass = record.result === "PASS";
                 const date = new Date(record.timestamp * 1000).toLocaleString();
                 const cluster =
-                  process.env.NEXT_PUBLIC_SOLANA_CLUSTER ?? "";
+                  record.solana_cluster !== undefined
+                    ? (record.solana_cluster ?? "")
+                    : (process.env.NEXT_PUBLIC_SOLANA_CLUSTER ?? "devnet");
                 const explorerUrl = record.solana_tx
                   ? `https://explorer.solana.com/tx/${record.solana_tx}${cluster ? `?cluster=${cluster}` : ""}`
                   : null;

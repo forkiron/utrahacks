@@ -3,6 +3,7 @@
 interface ProofVisualizationProps {
   evidenceHash: string;
   solanaTx?: string | null;
+  solanaCluster?: string | null;
   encryptedOnChain?: boolean;
   inspectionId?: string;
   compact?: boolean;
@@ -11,11 +12,15 @@ interface ProofVisualizationProps {
 export default function ProofVisualization({
   evidenceHash,
   solanaTx,
+  solanaCluster,
   encryptedOnChain = false,
   inspectionId,
   compact = false,
 }: ProofVisualizationProps) {
-  const cluster = process.env.NEXT_PUBLIC_SOLANA_CLUSTER ?? "";
+  const cluster =
+    solanaCluster !== undefined
+      ? (solanaCluster ?? "")
+      : (process.env.NEXT_PUBLIC_SOLANA_CLUSTER ?? "devnet");
   const explorerUrl = solanaTx
     ? `https://explorer.solana.com/tx/${solanaTx}${cluster ? `?cluster=${cluster}` : ""}`
     : null;

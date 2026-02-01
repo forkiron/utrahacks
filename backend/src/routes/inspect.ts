@@ -27,6 +27,15 @@ import { saveInspection, getInspection, getAllInspections } from "../services/st
 import type { GeminiComponent } from "../types.js";
 
 const router = Router();
+
+/** Derive Solana cluster from RPC URL for explorer links (devnet tx needs ?cluster=devnet). */
+function getSolanaCluster(): string | null {
+  const rpc = (process.env.SOLANA_RPC_URL ?? "").toLowerCase();
+  if (rpc.includes("devnet")) return "devnet";
+  if (rpc.includes("testnet")) return "testnet";
+  return null; // mainnet = default, no param needed
+}
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -282,10 +291,17 @@ router.post(
   }
 });
 
+/** Config for frontend (Solana cluster for explorer links). */
+router.get("/config", (req, res) => {
+  res.json({ solana_cluster: getSolanaCluster() });
+});
+
 /** List all saved inspections (newest first) for bot security tracking / verified list. */
 router.get("/list", (req, res) => {
   const list = getAllInspections();
-  res.json(list);
+  const cluster = getSolanaCluster();
+  const augmented = list.map((r) => ({ ...r, solana_cluster: cluster }));
+  res.json(augmented);
 });
 
 router.get("/verify/:id", (req, res) => {
@@ -293,7 +309,8 @@ router.get("/verify/:id", (req, res) => {
   if (!record) {
     return res.status(404).json({ error: "Inspection not found" });
   }
-  res.json(record);
+  const cluster = getSolanaCluster();
+  res.json({ ...record, solana_cluster: cluster });
 });
 
 /** Serve stored evidence image for an inspection (0-indexed). */

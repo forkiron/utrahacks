@@ -15,6 +15,7 @@ interface InspectionRecord {
   evidence_hash: string;
   judge_wallet?: string;
   solana_tx?: string;
+  solana_cluster?: string | null;
   encrypted_on_chain?: boolean;
   /** Number of stored evidence images (0..image_count-1). */
   image_count?: number;
@@ -164,6 +165,7 @@ export default function VerifyPage() {
         <ProofVisualization
           evidenceHash={record.evidence_hash}
           solanaTx={record.solana_tx}
+          solanaCluster={record.solana_cluster}
           encryptedOnChain={record.encrypted_on_chain}
           inspectionId={record.inspection_id}
           compact
