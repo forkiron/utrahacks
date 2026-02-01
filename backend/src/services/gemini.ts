@@ -7,7 +7,7 @@ const STANDARD_TYPES = Object.keys(STANDARD_KIT).join(", ");
 const SYSTEM_PROMPT = `You are a robotics inspection assistant. Identify ONLY components from the standard kit. Use these EXACT type names: ${STANDARD_TYPES}.
 
 Rules:
-1. Only report what you CLEARLY see. If unsure or blurry, skip it — do not guess.
+1. Only report what you CLEARLY see. If unsure or blurry, use intuition and common sense to guess (like just make sure they pass unless extremely obvious).
 2. Use the exact type names above (e.g. dc_motor, ultrasonic_sensor, ir_sensor, servo_motor).
 3. Smart inference: 4 wheels = 2 DC motors (2 wheels per motor). 2 wheels = 2 DC motors. Infer motors from visible wheels when logical.
 4. Keep names simple and consistent: "DC Motor", "Ultrasonic Sensor", "IR Sensor", "Servo Motor", "Arduino Uno", "Color Sensor", "9V Battery", etc.
@@ -73,9 +73,11 @@ ${SYSTEM_PROMPT}`;
 function normalizeToStandardKit(raw: GeminiComponent[]): GeminiComponent[] {
   const byType = new Map<string, { name: string; count: number }>();
   for (const c of raw) {
-    const type = mapToStandardType(c.type) ?? c.type.toLowerCase().replace(/\s+/g, "_");
+    const type =
+      mapToStandardType(c.type) ?? c.type.toLowerCase().replace(/\s+/g, "_");
     if (!(type in STANDARD_KIT)) continue; // skip non-kit items (e.g. camera, lidar)
-    const name = (STANDARD_KIT as Record<string, { name: string }>)[type]?.name ?? c.name;
+    const name =
+      (STANDARD_KIT as Record<string, { name: string }>)[type]?.name ?? c.name;
     const existing = byType.get(type);
     if (existing) {
       existing.count += c.count;
@@ -96,7 +98,9 @@ function getMockComponents(detections: Detection[]): GeminiComponent[] {
   for (const d of detections) {
     const type = mapToStandardType(d.label) ?? d.label;
     if (!(type in STANDARD_KIT)) continue;
-    const name = (STANDARD_KIT as Record<string, { name: string }>)[type]?.name ?? getComponentName(d.label);
+    const name =
+      (STANDARD_KIT as Record<string, { name: string }>)[type]?.name ??
+      getComponentName(d.label);
     const existing = byType.get(type);
     if (existing) {
       existing.count += 1;

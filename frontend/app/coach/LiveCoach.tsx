@@ -348,7 +348,7 @@ export default function LiveCoach() {
 
   return (
     <div className="space-y-6 font-sans">
-      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5">
+      <div className="rounded-lg border border-white/10 bg-black shadow-sm p-5">
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-4">
             <button
@@ -401,7 +401,7 @@ export default function LiveCoach() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+        <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
           <h2 className="mb-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
             Webcam preview
           </h2>
@@ -420,7 +420,7 @@ export default function LiveCoach() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+        <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
           <h2 className="mb-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
             Commentary
           </h2>
@@ -433,7 +433,7 @@ export default function LiveCoach() {
             {events.map((evt) => (
               <div
                 key={evt.eventId}
-                className="rounded-xl border border-white/5 bg-black/30 p-3"
+                className="rounded-lg border border-white/10 bg-black/60 p-3"
               >
                 <div className="flex items-center justify-between text-xs text-zinc-500">
                   <span>{formatTime(evt.t)}</span>

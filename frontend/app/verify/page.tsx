@@ -48,7 +48,7 @@ export default function VerifyLandingPage() {
         </div>
 
         {/* Look up by ID */}
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+        <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
             Look up by ID
           </p>
@@ -72,7 +72,7 @@ export default function VerifyLandingPage() {
         {/* Saved inspections / verified bots list */}
         <div>
           <h2 className="text-sm font-semibold text-zinc-200 mb-3">
-            Saved inspections
+            Recent verifications
           </h2>
           <p className="text-xs text-zinc-500 mb-4">
             Bots that have been verified — check on-chain proof for each
@@ -82,7 +82,7 @@ export default function VerifyLandingPage() {
               <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
             </div>
           ) : list.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-8 text-center text-zinc-500 text-sm">
+            <div className="rounded-lg border border-white/10 bg-black shadow-sm p-8 text-center text-zinc-500 text-sm">
               No inspections yet. Finalize one from Bot Security to see it here.
             </div>
           ) : (
@@ -99,7 +99,7 @@ export default function VerifyLandingPage() {
                   : null;
                 return (
                   <li key={record.inspection_id}>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4 hover:bg-white/[0.07] transition-colors">
+                    <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4 hover:bg-white/5 transition-colors">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                           <p className="font-mono font-semibold text-zinc-100">

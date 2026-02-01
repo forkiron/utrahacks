@@ -24,10 +24,10 @@ export default function AnalysisResults({
   return (
     <div className="space-y-6 font-sans">
       <div
-        className={`rounded-2xl p-6 backdrop-blur border ${
+        className={`rounded-lg p-6 shadow-sm border ${
           isPass
-            ? "bg-emerald-500/10 border-white/10"
-            : "bg-red-500/10 border-white/10"
+            ? "bg-emerald-500/10 border-emerald-500/30"
+            : "bg-red-500/10 border-red-500/30"
         }`}
       >
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Result</p>
@@ -49,7 +49,7 @@ export default function AnalysisResults({
         )}
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+      <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
           Detected components
         </p>
@@ -68,7 +68,7 @@ export default function AnalysisResults({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+      <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-2">Robot ID</p>
         <input
           type="text"

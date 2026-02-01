@@ -93,7 +93,7 @@ export default function VerifyPage() {
         </div>
 
         {imageCount > 0 && (
-          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+          <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
               Inspection images
             </p>
@@ -120,13 +120,13 @@ export default function VerifyPage() {
           </div>
         )}
 
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+        <div className="rounded-lg border border-white/10 bg-black p-4">
           <p className="text-sm font-medium text-zinc-400 mb-2">Robot ID</p>
           <p className="font-mono">{record.robot_id}</p>
         </div>
 
         {record.judge_wallet && (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+          <div className="rounded-lg border border-white/10 bg-black p-4">
             <p className="text-sm font-medium text-zinc-400 mb-2">
               Finalized by
             </p>
@@ -135,7 +135,7 @@ export default function VerifyPage() {
         )}
 
         {record.violations.length > 0 && (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+          <div className="rounded-lg border border-white/10 bg-black p-4">
             <p className="text-sm font-medium text-zinc-400 mb-2">Violations</p>
             <ul className="space-y-1 text-red-400">
               {record.violations.map((v, i) => (
@@ -145,7 +145,7 @@ export default function VerifyPage() {
           </div>
         )}
 
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+        <div className="rounded-lg border border-white/10 bg-black p-4">
           <p className="text-sm font-medium text-zinc-400 mb-3">Components</p>
           <div className="space-y-2">
             {record.components.map((c, i) => (

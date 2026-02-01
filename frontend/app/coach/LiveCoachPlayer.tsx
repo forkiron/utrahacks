@@ -261,7 +261,7 @@ export default function LiveCoachPlayer() {
 
   return (
     <div className="space-y-6 font-sans">
-      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5">
+      <div className="rounded-lg border border-white/10 bg-black shadow-sm p-5">
         <div className="flex flex-col gap-4">
           <label className="text-xs font-medium uppercase tracking-wide text-zinc-500">
             Upload run video (mp4/webm)
@@ -303,7 +303,7 @@ export default function LiveCoachPlayer() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+        <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
           {videoUrl ? (
             <video
               ref={videoRef}
@@ -319,7 +319,7 @@ export default function LiveCoachPlayer() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+        <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
           <h2 className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
             Commentary timeline
           </h2>

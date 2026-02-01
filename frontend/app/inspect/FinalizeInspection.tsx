@@ -67,7 +67,7 @@ export default function FinalizeInspection({
   if (result) {
     return (
       <div className="space-y-6 font-sans">
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-8 text-center">
+        <div className="rounded-lg border border-white/10 bg-black shadow-sm p-8 text-center">
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Inspection finalized</p>
           <p className="text-xl font-mono font-semibold mt-2 text-zinc-100">
             {result.inspection_id}

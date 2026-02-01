@@ -30,9 +30,9 @@ export default function RecentScansQueue() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+      <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
-          Recent scans
+          Recent verifications
         </p>
         <div className="flex justify-center py-6">
           <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -43,12 +43,12 @@ export default function RecentScansQueue() {
 
   if (inspections.length === 0) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+      <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
-          Recent scans
+          Recent verifications
         </p>
         <p className="text-xs text-zinc-500 text-center py-4">
-          No recent scans. Complete an inspection to see it here.
+          No recent verifications. Finalize an inspection from Bot Security to see it here.
         </p>
       </div>
     );
@@ -57,9 +57,9 @@ export default function RecentScansQueue() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+    <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
       <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
-        Recent scans
+        Recent verifications
       </p>
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
         {inspections.map((record) => {
@@ -96,15 +96,24 @@ export default function RecentScansQueue() {
                       </div>
                     )}
                   </div>
-                  {/* Pass/Fail badge */}
+                  {/* Pass/Fail badge — different icon per result */}
                   <div
-                    className={`absolute -bottom-0.5 -right-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                    className={`absolute -bottom-0.5 -right-0.5 flex items-center justify-center w-5 h-5 rounded-full ${
                       isPass
-                        ? "bg-emerald-500 text-emerald-950"
-                        : "bg-red-500 text-red-950"
+                        ? "bg-emerald-500 text-white"
+                        : "bg-red-500 text-white"
                     }`}
+                    aria-label={isPass ? "Passed" : "Failed"}
                   >
-                    {isPass ? "✓" : "✗"}
+                    {isPass ? (
+                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24" aria-hidden>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24" aria-hidden>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
                   </div>
                 </div>
                 {/* Robot ID */}

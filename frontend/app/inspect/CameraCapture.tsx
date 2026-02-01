@@ -371,7 +371,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
     <div className="space-y-6 font-sans">
       <div
         ref={containerRef}
-        className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur overflow-hidden aspect-video flex items-center justify-center relative"
+        className="rounded-lg border border-white/10 bg-black shadow-sm overflow-hidden aspect-video flex items-center justify-center relative"
       >
         {!stream && (
           <div className="text-center p-8">
@@ -500,7 +500,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
       </div>
 
       {captured.length > 0 && (
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+        <div className="rounded-lg border border-white/10 bg-black shadow-sm p-4">
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-2">
             {captured.length} snapshot{captured.length !== 1 ? "s" : ""} (3–5
             recommended)
