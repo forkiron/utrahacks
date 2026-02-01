@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { writeFileSync, unlinkSync, existsSync } from "fs";
+import { writeFileSync, unlinkSync, existsSync, mkdirSync, readFileSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { fileURLToPath } from "url";
@@ -11,6 +11,8 @@ import { runObjectDetection } from "../services/cvLayer.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // backend/src/routes -> backend/src -> backend -> repo root (3 levels)
 const PROJECT_ROOT = resolve(__dirname, "..", "..", "..");
+/** Stored inspection images: backend/data/inspections/<inspection_id>/0.jpg, 1.jpg, ... */
+const DATA_DIR = resolve(__dirname, "..", "..", "data", "inspections");
 import { decodeComponents } from "../services/gemini.js";
 import { evaluateRules } from "../services/ruleEngine.js";
 import {
@@ -21,7 +23,7 @@ import {
 } from "../services/evidence.js";
 import { writeInspectionToChain } from "../services/solana.js";
 import { verifyWalletSignature } from "../services/auth.js";
-import { saveInspection, getInspection } from "../services/store.js";
+import { saveInspection, getInspection, getAllInspections } from "../services/store.js";
 import type { GeminiComponent } from "../types.js";
 
 const router = Router();
@@ -141,81 +143,127 @@ router.post("/analyze", upload.array("images", 10), async (req, res) => {
   }
 });
 
-router.post("/finalize", upload.none(), async (req, res) => {
-  try {
-    const {
-      robotId,
-      components,
-      result,
-      violations,
-      image_hash,
-      analysis_hash,
-      wallet_address,
-      signature,
-      signed_message,
-      demo_mode,
-    } = req.body;
-
-    const demoBypass = process.env.DEMO_MODE === "true" && demo_mode === true;
-
-    if (!demoBypass) {
-      if (!wallet_address || !signature || !signed_message) {
-        return res
-          .status(401)
-          .json({
-            error: "Wallet signature required. Connect wallet and sign.",
-          });
+router.post(
+  "/finalize",
+  upload.fields([{ name: "images", maxCount: 10 }]),
+  async (req, res) => {
+    try {
+      const files = req.files as { payload?: Express.Multer.File[]; images?: Express.Multer.File[] } | undefined;
+      const images = files?.images ?? [];
+      let payload: Record<string, unknown>;
+      try {
+        const payloadRaw = (req.body as { payload?: string }).payload ?? req.body;
+        if (typeof payloadRaw === "string") {
+          payload = JSON.parse(payloadRaw) as Record<string, unknown>;
+        } else {
+          payload = payloadRaw as Record<string, unknown>;
+        }
+      } catch {
+        return res.status(400).json({ error: "Invalid payload. Send JSON as payload field or body." });
       }
 
-      if (!verifyWalletSignature(signed_message, signature, wallet_address)) {
-        return res
-          .status(401)
-          .json({ error: "Invalid signature. Please sign again." });
+      const {
+        robotId,
+        components,
+        result,
+        violations,
+        image_hash,
+        analysis_hash,
+        wallet_address,
+        signature,
+        signed_message,
+        demo_mode,
+      } = payload;
+
+      const demoBypass = process.env.DEMO_MODE === "true" && demo_mode === true;
+
+      if (!demoBypass) {
+        if (!wallet_address || !signature || !signed_message) {
+          return res
+            .status(401)
+            .json({
+              error: "Wallet signature required. Connect wallet and sign.",
+            });
+        }
+
+        if (!verifyWalletSignature(String(signed_message), String(signature), String(wallet_address))) {
+          return res
+            .status(401)
+            .json({ error: "Invalid signature. Please sign again." });
       }
     }
 
-    const judgeWallet = demoBypass ? "demo-placeholder" : wallet_address;
+    const judgeWallet = demoBypass ? "demo-placeholder" : String(payload.wallet_address ?? "");
 
-    const imageHash = image_hash ?? "0x0";
+    const imageHash = (payload.image_hash as string) ?? "0x0";
     const analysisHash =
-      analysis_hash ?? hashObject({ components, result, violations });
+      (payload.analysis_hash as string) ?? hashObject({ components: payload.components, result: payload.result, violations: payload.violations });
 
     const inspectionId = `INS-2026-${String(
       Math.floor(Math.random() * 10000)
     ).padStart(4, "0")}`;
+
+    // Store evidence images alongside inspection
+    const imageCount = images.length;
+    if (imageCount > 0) {
+      const inspectionDir = join(DATA_DIR, inspectionId);
+      mkdirSync(inspectionDir, { recursive: true });
+      images.forEach((file, i) => {
+        if (file.buffer) {
+          writeFileSync(join(inspectionDir, `${i}.jpg`), file.buffer);
+        }
+      });
+    }
+
     const bundle = createEvidenceBundle(
       inspectionId,
-      robotId ?? "UNKNOWN",
-      result ?? "PASS",
-      Array.isArray(violations) ? violations : [],
-      (Array.isArray(components) ? components : []) as GeminiComponent[],
+      String(payload.robotId ?? "UNKNOWN"),
+      (payload.result as "PASS" | "FAIL") ?? "PASS",
+      Array.isArray(payload.violations) ? payload.violations : [],
+      (Array.isArray(payload.components) ? payload.components : []) as GeminiComponent[],
       imageHash,
       analysisHash
     );
     const evidenceHash = getBundleHash(bundle);
 
+    // Solana on-chain write is required
+    const solanaRpc = process.env.SOLANA_RPC_URL?.trim();
+    const solanaKey = process.env.SOLANA_PRIVATE_KEY?.trim();
+    if (!solanaRpc || !solanaKey) {
+      return res.status(503).json({
+        error: "Solana not configured. Set SOLANA_RPC_URL and SOLANA_PRIVATE_KEY in backend/.env (see README).",
+      });
+    }
+
     const { txSignature: solanaTxSig, encrypted: encryptedOnChain } =
       await writeInspectionToChain(
         inspectionId,
-        robotId ?? "UNKNOWN",
-        result ?? "PASS",
+        String(payload.robotId ?? "UNKNOWN"),
+        (payload.result as "PASS" | "FAIL") ?? "PASS",
         evidenceHash,
-        process.env.SOLANA_RPC_URL ?? "",
-        process.env.SOLANA_PRIVATE_KEY
+        solanaRpc,
+        solanaKey
       );
+
+    if (!solanaTxSig) {
+      return res.status(503).json({
+        error: "On-chain write failed. Check SOLANA_RPC_URL, SOLANA_PRIVATE_KEY, and RPC/network.",
+      });
+    }
 
     const record = {
       inspection_id: inspectionId,
-      robot_id: robotId ?? "UNKNOWN",
-      result: result ?? "PASS",
-      violations: Array.isArray(violations) ? violations : [],
-      components: (Array.isArray(components)
-        ? components
+      robot_id: String(payload.robotId ?? "UNKNOWN"),
+      result: (payload.result as "PASS" | "FAIL") ?? "PASS",
+      violations: Array.isArray(payload.violations) ? payload.violations : [],
+      components: (Array.isArray(payload.components)
+        ? payload.components
         : []) as GeminiComponent[],
       evidence_hash: evidenceHash,
       judge_wallet: judgeWallet,
       solana_tx: solanaTxSig ?? undefined,
       encrypted_on_chain: encryptedOnChain,
+      image_count: imageCount,
       timestamp: Math.floor(Date.now() / 1000),
     };
     saveInspection(record);
@@ -225,6 +273,7 @@ router.post("/finalize", upload.none(), async (req, res) => {
       evidence_hash: evidenceHash,
       solana_tx: solanaTxSig,
       encrypted_on_chain: encryptedOnChain,
+      image_count: imageCount,
       qr_data: `https://inspect.utrahacks.dev/verify/${inspectionId}`,
     });
   } catch (err) {
@@ -233,12 +282,43 @@ router.post("/finalize", upload.none(), async (req, res) => {
   }
 });
 
+/** List all saved inspections (newest first) for bot security tracking / verified list. */
+router.get("/list", (req, res) => {
+  const list = getAllInspections();
+  res.json(list);
+});
+
 router.get("/verify/:id", (req, res) => {
   const record = getInspection(req.params.id);
   if (!record) {
     return res.status(404).json({ error: "Inspection not found" });
   }
   res.json(record);
+});
+
+/** Serve stored evidence image for an inspection (0-indexed). */
+router.get("/evidence/:inspectionId/:index", (req, res) => {
+  const { inspectionId, index } = req.params;
+  const i = parseInt(index, 10);
+  if (!inspectionId || !Number.isFinite(i) || i < 0) {
+    return res.status(400).send("Invalid inspection id or index");
+  }
+  const record = getInspection(inspectionId);
+  if (!record) {
+    return res.status(404).send("Inspection not found");
+  }
+  const count = record.image_count ?? 0;
+  if (i >= count) {
+    return res.status(404).send("Image not found");
+  }
+  const path = join(DATA_DIR, inspectionId, `${i}.jpg`);
+  if (!existsSync(path)) {
+    return res.status(404).send("Image file not found");
+  }
+  const buf = readFileSync(path);
+  res.setHeader("Content-Type", "image/jpeg");
+  res.setHeader("Cache-Control", "public, max-age=86400");
+  res.send(buf);
 });
 
 export default router;

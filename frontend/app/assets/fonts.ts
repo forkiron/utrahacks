@@ -3,7 +3,7 @@
  * All fonts are loaded here so they're easy to find and consistent after pull.
  *
  * Font files: next/font/google loads from Google at build time.
- * For local font files, add .woff2 to public/assets/fonts/ and switch to next/font/local.
+ * For local font files, use next/font/local and point to your font path.
  */
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 

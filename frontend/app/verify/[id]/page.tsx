@@ -16,6 +16,8 @@ interface InspectionRecord {
   judge_wallet?: string;
   solana_tx?: string;
   encrypted_on_chain?: boolean;
+  /** Number of stored evidence images (0..image_count-1). */
+  image_count?: number;
   timestamp: number;
 }
 
@@ -62,6 +64,8 @@ export default function VerifyPage() {
 
   const isPass = record.result === "PASS";
   const date = new Date(record.timestamp * 1000).toLocaleString();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+  const imageCount = record.image_count ?? 0;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans">
@@ -86,6 +90,34 @@ export default function VerifyPage() {
           <p className="text-zinc-500 text-sm mt-1">{record.inspection_id}</p>
           <p className="text-zinc-500 text-sm">{date}</p>
         </div>
+
+        {imageCount > 0 && (
+          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
+              Inspection images
+            </p>
+            <p className="text-sm text-zinc-400 mb-3">
+              Photos used for this check (camera → constraints → pass/fail).
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {Array.from({ length: imageCount }, (_, i) => (
+                <a
+                  key={i}
+                  href={`${apiUrl}/api/inspect/evidence/${record.inspection_id}/${i}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block rounded-xl border border-white/10 overflow-hidden bg-black/30 aspect-square"
+                >
+                  <img
+                    src={`${apiUrl}/api/inspect/evidence/${record.inspection_id}/${i}`}
+                    alt={`Evidence ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
           <p className="text-sm font-medium text-zinc-400 mb-2">Robot ID</p>

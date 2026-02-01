@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const navLinks = [
   { href: "/coach", label: "Commentary" },
   { href: "/inspect", label: "Bot Security" },
+  { href: "/verify", label: "Verify" },
 ] as const;
 
 function isBotSecurityActive(pathname: string) {
@@ -29,7 +30,9 @@ export default function AppNavbar() {
             const isActive =
               href === "/coach"
                 ? pathname.startsWith("/coach")
-                : isBotSecurityActive(pathname);
+                : href === "/verify"
+                  ? pathname.startsWith("/verify")
+                  : isBotSecurityActive(pathname);
             return (
               <Link
                 key={href}

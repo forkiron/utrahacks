@@ -72,10 +72,13 @@ export async function writeInspectionToChain(
       preflightCommitment: "confirmed",
     });
 
-    await connection.confirmTransaction(
-      { signature: sig, blockhash, lastValidBlockHeight },
-      "confirmed"
-    );
+    // Don't wait for confirmation — avoids TransactionExpiredBlockheightExceededError when RPC is slow.
+    // Tx is submitted; user can check explorer. Optionally confirm in background:
+    connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, "confirmed").catch((err) => {
+      if (String((err as { name?: string })?.name) !== "TransactionExpiredBlockheightExceededError") {
+        console.warn("Solana confirm (background):", err);
+      }
+    });
     return { txSignature: sig, encrypted };
   } catch (err) {
     console.error("Solana write error:", err);

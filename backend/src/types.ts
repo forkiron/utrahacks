@@ -34,6 +34,8 @@ export interface InspectionRecord {
   solana_tx?: string;
   /** If true, the on-chain memo is encrypted (AES-256-GCM). */
   encrypted_on_chain?: boolean;
+  /** Number of evidence images stored for this inspection (0..image_count-1). */
+  image_count?: number;
   timestamp: number;
 }
 

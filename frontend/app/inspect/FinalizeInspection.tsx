@@ -14,6 +14,7 @@ interface FinalizeInspectionProps {
 export default function FinalizeInspection({
   robotId,
   analysis,
+  images,
   onDone,
 }: FinalizeInspectionProps) {
   const [loading, setLoading] = useState(false);
@@ -22,6 +23,7 @@ export default function FinalizeInspection({
     evidence_hash: string;
     solana_tx: string | null;
     encrypted_on_chain?: boolean;
+    image_count?: number;
     qr_data: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,16 +40,19 @@ export default function FinalizeInspection({
         image_hash: analysis.image_hash,
         analysis_hash: analysis.analysis_hash,
         nonce: Date.now(),
+        demo_mode: true,
       };
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+      const formData = new FormData();
+      formData.append("payload", JSON.stringify(payload));
+      images.forEach((img, i) => {
+        formData.append("images", img.blob, `image-${i}.jpg`);
+      });
+
       const res = await fetch(`${apiUrl}/api/inspect/finalize`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...payload,
-          demo_mode: true,
-        }),
+        body: formData,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Finalization failed");

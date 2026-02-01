@@ -69,3 +69,6 @@ videos/
 dataset/*/images/
 dataset/*/labels/
 dataset/*/labels.cache
+
+# Stored inspection evidence images (backend/data/inspections/<id>/)
+backend/data/

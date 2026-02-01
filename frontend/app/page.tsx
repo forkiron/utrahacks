@@ -11,7 +11,7 @@ export default function Home() {
           muted
           playsInline
           className="absolute inset-0 w-full h-full object-cover scale-105 filter-[blur(12px)_brightness(0.3)]"
-          src="/assets/images/landing.mov"
+          src="/landing.mov"
         />
         <div className="absolute inset-0 bg-black/35" aria-hidden />
       </div>
