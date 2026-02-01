@@ -9,7 +9,40 @@ import {
 } from "react";
 import type { CapturedImage } from "./page";
 
-const DETECT_INTERVAL_MS = 600;
+const DETECT_INTERVAL_MS = 3000;
+
+export interface FeedFilters {
+  contrast: number;
+  bw: boolean;
+  backgroundBlur: boolean;
+}
+
+function applyFeedFilters(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  filters: FeedFilters
+): void {
+  if (filters.contrast === 1 && !filters.bw) return;
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const data = imageData.data;
+
+  if (filters.contrast !== 1) {
+    for (let i = 0; i < data.length; i += 4) {
+      data[i] = Math.max(0, Math.min(255, (data[i] - 128) * filters.contrast + 128));
+      data[i + 1] = Math.max(0, Math.min(255, (data[i + 1] - 128) * filters.contrast + 128));
+      data[i + 2] = Math.max(0, Math.min(255, (data[i + 2] - 128) * filters.contrast + 128));
+    }
+  }
+  if (filters.bw) {
+    for (let i = 0; i < data.length; i += 4) {
+      const g = (0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]) | 0;
+      data[i] = data[i + 1] = data[i + 2] = Math.max(0, Math.min(255, g));
+    }
+  }
+  ctx.putImageData(imageData, 0, 0);
+}
+const DETECT_INTERVAL_YOLO_MS = 2000;
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 export interface LiveDetection {
@@ -28,10 +61,21 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
   const [error, setError] = useState<string | null>(null);
   const [liveDetections, setLiveDetections] = useState<LiveDetection[]>([]);
   const [detecting, setDetecting] = useState(false);
+  const [useYoloWheel, setUseYoloWheel] = useState(false);
+  const [minConfidence, setMinConfidence] = useState(0.08);
+  const [filters, setFilters] = useState<FeedFilters>({
+    contrast: 1.2,
+    bw: false,
+    backgroundBlur: false,
+  });
   const videoRef = useRef<HTMLVideoElement>(null);
+  const feedCanvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const detectIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const liveDetectionsRef = useRef<LiveDetection[]>([]);
+  liveDetectionsRef.current = liveDetections;
 
   useLayoutEffect(() => {
     if (stream && videoRef.current) {
@@ -53,6 +97,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.drawImage(video, 0, 0);
+    applyFeedFilters(ctx, w, h, filters);
     return new Promise<void>((resolve) => {
       canvas.toBlob(
         async (blob) => {
@@ -63,7 +108,10 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
           try {
             const form = new FormData();
             form.append("image", blob, "frame.jpg");
-            const res = await fetch(`${API_URL}/api/inspect/detect`, {
+            const endpoint = useYoloWheel
+              ? `${API_URL}/api/inspect/detect-wheel?conf=${encodeURIComponent(minConfidence)}`
+              : `${API_URL}/api/inspect/detect`;
+            const res = await fetch(endpoint, {
               method: "POST",
               body: form,
             });
@@ -72,7 +120,11 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
               return;
             }
             const data = await res.json();
-            setLiveDetections(data.detections ?? []);
+            const raw = (data.detections ?? []) as LiveDetection[];
+            const filtered = useYoloWheel
+              ? raw.filter((d) => (d.confidence ?? 0) >= minConfidence)
+              : raw;
+            setLiveDetections(filtered);
           } catch {
             setLiveDetections([]);
           }
@@ -82,7 +134,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
         0.85
       );
     });
-  }, [stream]);
+  }, [stream, useYoloWheel, minConfidence, filters]);
 
   // Start/stop detection interval when stream is on/off
   useEffect(() => {
@@ -97,7 +149,8 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
     }
     setDetecting(true);
     runDetection(); // run once immediately
-    detectIntervalRef.current = setInterval(runDetection, DETECT_INTERVAL_MS);
+    const interval = useYoloWheel ? DETECT_INTERVAL_YOLO_MS : DETECT_INTERVAL_MS;
+    detectIntervalRef.current = setInterval(runDetection, interval);
     return () => {
       if (detectIntervalRef.current) {
         clearInterval(detectIntervalRef.current);
@@ -105,7 +158,96 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
       }
       setDetecting(false);
     };
-  }, [stream, runDetection]);
+  }, [stream, runDetection, useYoloWheel, minConfidence]);
+
+  // Live feed canvas: draw video + filters; optional blur bg and keep detections sharp
+  useEffect(() => {
+    const video = videoRef.current;
+    const feedCanvas = feedCanvasRef.current;
+    const container = containerRef.current;
+    if (!stream || !video || !feedCanvas || !container) return;
+
+    let off: HTMLCanvasElement | null = null;
+    let blurCanvas: HTMLCanvasElement | null = null;
+    const BLUR_PX = 18;
+
+    const tick = () => {
+      if (!video.videoWidth || !video.videoHeight) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+      const cw = container.clientWidth;
+      const ch = container.clientHeight;
+      if (!cw || !ch) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+      if (!off || off.width !== vw || off.height !== vh) {
+        off = document.createElement("canvas");
+        off.width = vw;
+        off.height = vh;
+      }
+      const offCtx = off.getContext("2d");
+      if (!offCtx) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+      offCtx.drawImage(video, 0, 0);
+      applyFeedFilters(offCtx, vw, vh, filters);
+      feedCanvas.width = cw;
+      feedCanvas.height = ch;
+      const scale = Math.max(cw / vw, ch / vh);
+      const offsetX = (cw - scale * vw) / 2;
+      const offsetY = (ch - scale * vh) / 2;
+      const fctx = feedCanvas.getContext("2d");
+      if (!fctx) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
+      if (filters.backgroundBlur) {
+        if (!blurCanvas || blurCanvas.width !== vw || blurCanvas.height !== vh) {
+          blurCanvas = document.createElement("canvas");
+          blurCanvas.width = vw;
+          blurCanvas.height = vh;
+        }
+        const bctx = blurCanvas.getContext("2d");
+        if (bctx) {
+          bctx.filter = `blur(${BLUR_PX}px)`;
+          bctx.drawImage(off, 0, 0);
+          bctx.filter = "none";
+        }
+        fctx.drawImage(blurCanvas, 0, 0, vw, vh, offsetX, offsetY, scale * vw, scale * vh);
+        const dets = liveDetectionsRef.current;
+        dets.forEach((d) => {
+          if (!d.bbox || d.bbox.length < 4) return;
+          const [x, y, w, h] = d.bbox;
+          const pad = 8;
+          const sx = Math.max(0, x - pad);
+          const sy = Math.max(0, y - pad);
+          const sw = Math.min(vw - sx, w + pad * 2);
+          const sh = Math.min(vh - sy, h + pad * 2);
+          if (sw <= 0 || sh <= 0) return;
+          fctx.drawImage(
+            off,
+            sx, sy, sw, sh,
+            offsetX + sx * scale, offsetY + sy * scale, sw * scale, sh * scale
+          );
+        });
+      } else {
+        fctx.drawImage(off, 0, 0, vw, vh, offsetX, offsetY, scale * vw, scale * vh);
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    };
+  }, [stream, filters]);
 
   // Draw bounding boxes on overlay canvas (object-cover scale)
   useEffect(() => {
@@ -177,13 +319,18 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
   }, [stream]);
 
   const capture = useCallback(() => {
-    if (!videoRef.current) return;
+    const video = videoRef.current;
+    if (!video) return;
+    const w = video.videoWidth;
+    const h = video.videoHeight;
+    if (!w || !h) return;
     const canvas = document.createElement("canvas");
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
+    canvas.width = w;
+    canvas.height = h;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.drawImage(videoRef.current, 0, 0);
+    ctx.drawImage(video, 0, 0);
+    applyFeedFilters(ctx, w, h, filters);
     canvas.toBlob(
       (blob) => {
         if (!blob) return;
@@ -196,7 +343,7 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
       "image/jpeg",
       0.9
     );
-  }, []);
+  }, [filters]);
 
   const removeImage = (id: string) => {
     setCaptured((prev) => prev.filter((i) => i.id !== id));
@@ -259,6 +406,14 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
           className={`absolute inset-0 w-full h-full object-cover ${
             stream ? "block" : "hidden"
           }`}
+          style={stream ? { opacity: 0, position: "absolute", pointerEvents: "none" } : undefined}
+        />
+        <canvas
+          ref={feedCanvasRef}
+          className={`absolute inset-0 w-full h-full pointer-events-none ${
+            stream ? "block" : "hidden"
+          }`}
+          style={{ objectFit: "cover" }}
         />
         <canvas
           ref={overlayRef}
@@ -269,9 +424,69 @@ export default function CameraCapture({ onComplete }: CameraCaptureProps) {
         />
         {stream && (
           <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center gap-2 z-10">
+            <div className="flex flex-wrap items-center justify-center gap-2 text-xs bg-zinc-900/80 px-3 py-1.5 rounded">
+              <span className="text-zinc-500 shrink-0">Filters:</span>
+              <label className="flex items-center gap-1.5 text-zinc-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.contrast > 1}
+                  onChange={(e) =>
+                    setFilters((f) => ({ ...f, contrast: e.target.checked ? 1.3 : 1 }))
+                  }
+                  className="rounded border-zinc-500"
+                />
+                Contrast
+              </label>
+              <label className="flex items-center gap-1.5 text-zinc-300 cursor-pointer" title="Blur background, keep detected objects sharp">
+                <input
+                  type="checkbox"
+                  checked={filters.backgroundBlur}
+                  onChange={(e) =>
+                    setFilters((f) => ({ ...f, backgroundBlur: e.target.checked }))
+                  }
+                  className="rounded border-zinc-500"
+                />
+                Blur bg
+              </label>
+              <label className="flex items-center gap-1.5 text-zinc-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.bw}
+                  onChange={(e) => setFilters((f) => ({ ...f, bw: e.target.checked }))}
+                  className="rounded border-zinc-500"
+                />
+                B&W
+              </label>
+            </div>
+            <div className="flex flex-col items-center gap-1.5">
+              <label className="flex items-center gap-2 text-xs text-zinc-300 bg-zinc-900/80 px-3 py-1.5 rounded cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useYoloWheel}
+                  onChange={(e) => setUseYoloWheel(e.target.checked)}
+                  className="rounded border-zinc-500"
+                />
+                Wheel (YOLO) — live test
+              </label>
+              {useYoloWheel && (
+                <label className="flex items-center gap-2 text-xs text-zinc-400 bg-zinc-900/80 px-3 py-1.5 rounded w-full max-w-[220px]" title="Lower = more boxes (5–15% is fine for demo)">
+                  <span className="shrink-0">Min conf:</span>
+                  <input
+                    type="range"
+                    min={0.01}
+                    max={0.9}
+                    step={0.01}
+                    value={minConfidence}
+                    onChange={(e) => setMinConfidence(parseFloat(e.target.value))}
+                    className="flex-1 h-2 accent-amber-500"
+                  />
+                  <span className="shrink-0 w-8 text-right">{Math.round(minConfidence * 100)}%</span>
+                </label>
+              )}
+            </div>
             {detecting && (
               <span className="text-xs text-amber-400/90 bg-zinc-900/80 px-2 py-1 rounded">
-                Detecting components…
+                {useYoloWheel ? "Detecting wheels…" : "Detecting components…"}
               </span>
             )}
             <button

@@ -46,7 +46,9 @@ ${SYSTEM_PROMPT}`;
 
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]) as { components: GeminiComponent[] };
+      const parsed = JSON.parse(jsonMatch[0]) as {
+        components: GeminiComponent[];
+      };
       return parsed.components ?? [];
     }
   } catch (err) {
@@ -75,7 +77,6 @@ function getMockComponents(detections: Detection[]): GeminiComponent[] {
     count,
   }));
 }
-
 function getComponentName(label: string): string {
   const names: Record<string, string> = {
     motor: "DC Motor",

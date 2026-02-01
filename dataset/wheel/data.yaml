@@ -1,0 +1,7 @@
+# YOLOv8 wheel dataset (single class)
+# path is resolved relative to this yaml's directory
+path: dataset/wheel
+train: images
+val: images
+nc: 1
+names: { 0: wheel }

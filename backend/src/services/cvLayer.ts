@@ -56,7 +56,6 @@ export async function runObjectDetection(
 
   return allDetections;
 }
-
 function getMockLabelsForImage(
   imageIndex: number,
   totalImages: number

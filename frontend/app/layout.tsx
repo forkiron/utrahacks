@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,6 +16,13 @@ const geistMono = Geist_Mono({
   preload: false,
 });
 
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  display: "swap",
+  style: ["normal", "italic"],
+});
+
 export const metadata: Metadata = {
   title: "Robot Inspection - UtraHacks",
   description: "AI-powered compliance verification for robotics competitions",
@@ -28,10 +35,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} antialiased`}>
+        <div className="content">{children}</div>
       </body>
     </html>
   );

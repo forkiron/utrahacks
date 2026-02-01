@@ -6,7 +6,12 @@ import ImagePreview from "./ImagePreview";
 import AnalysisResults from "./AnalysisResults";
 import FinalizeInspection from "./FinalizeInspection";
 
-export type InspectStep = "capture" | "preview" | "analyzing" | "results" | "finalize";
+export type InspectStep =
+  | "capture"
+  | "preview"
+  | "analyzing"
+  | "results"
+  | "finalize";
 
 export interface CapturedImage {
   blob: Blob;
@@ -77,9 +82,7 @@ export default function InspectPage() {
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-8">
-        {step === "capture" && (
-          <CameraCapture onComplete={onCaptureComplete} />
-        )}
+        {step === "capture" && <CameraCapture onComplete={onCaptureComplete} />}
         {step === "preview" && (
           <ImagePreview
             images={images}
@@ -90,7 +93,9 @@ export default function InspectPage() {
         {step === "analyzing" && (
           <div className="flex flex-col items-center justify-center py-24 gap-6">
             <div className="w-16 h-16 border-4 border-amber-500/50 border-t-amber-500 rounded-full animate-spin" />
-            <p className="text-zinc-400">Running CV detection + Gemini analysis...</p>
+            <p className="text-zinc-400">
+              Running CV detection + Gemini analysis...
+            </p>
           </div>
         )}
         {step === "results" && analysis && (

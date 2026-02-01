@@ -50,3 +50,22 @@ yarn-error.log*
 
 # Next.js generated
 next-env.d.ts
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.env/
+.Python
+
+# YOLO / ML - large generated files
+yolov8n.pt
+runs/
+videos/
+
+# Dataset - generated from videos (keep data.yaml)
+dataset/*/images/
+dataset/*/labels/
+dataset/*/labels.cache
