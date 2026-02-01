@@ -3,14 +3,14 @@ import { fontClassNames } from "./assets/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Sentinel — All-in-One Robot Competition Management",
-  description: "Sentinel: inspect, verify, live commentary, and coaching for robot competitions—with on-chain proof.",
+  title: "Sentinel — End-to-End Competition Management Platform",
+  description: "Sentinel: end-to-end competition management—inspect, verify, live commentary, and coaching with on-chain proof.",
   icons: {
     icon: "/unnamed.jpg",
   },
   openGraph: {
-    title: "Sentinel — All-in-One Robot Competition Management",
-    description: "Inspect, verify, commentary, and coaching for robot competitions—with on-chain proof.",
+    title: "Sentinel — End-to-End Competition Management Platform",
+    description: "End-to-end competition management—inspect, verify, commentary, and coaching with on-chain proof.",
     type: "website",
   },
 };

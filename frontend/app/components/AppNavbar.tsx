@@ -11,7 +11,7 @@ const navLinks = [
 ] as const;
 
 function isBotSecurityActive(pathname: string) {
-  return pathname.startsWith("/inspect") || pathname.startsWith("/verify");
+  return pathname.startsWith("/inspect");
 }
 
 export default function AppNavbar() {

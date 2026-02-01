@@ -75,7 +75,11 @@ export default function Home() {
         className="sticky top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-md"
         initial={{ y: -24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+        transition={{
+          delay: 0.2,
+          duration: 0.5,
+          ease: [0.25, 0.46, 0.45, 0.94],
+        }}
       >
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
@@ -120,16 +124,19 @@ export default function Home() {
               className="font-serif text-5xl md:text-7xl font-medium italic text-white tracking-tight leading-[1.1] drop-shadow-sm"
               variants={fadeUp}
             >
-              All-in-one management for robot competitions
+              End-to-end competition management platform
             </motion.h1>
             <motion.p
               className="text-lg md:text-xl text-white/90 mt-6 max-w-2xl mx-auto leading-relaxed font-sans"
               variants={fadeUp}
             >
-              Inspect, verify, live commentary, and coaching—with on-chain proof.
+              Inspect, verify and go live, we've got you covered.
             </motion.p>
             <motion.div variants={fadeUp} className="mt-8">
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+              >
                 <Link
                   href="/inspect"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-medium rounded-none hover:bg-white/90 transition-colors"
@@ -160,7 +167,7 @@ export default function Home() {
           <motion.button
             type="button"
             onClick={scrollToDemo}
-            className="shrink-0 mt-auto pt-8 text-white/70 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded-full p-2"
+            className="shrink-0 mt-50 text-white/40 hover:text-white/70 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded-full p-2"
             aria-label="Scroll to demo"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -169,7 +176,7 @@ export default function Home() {
             whileTap={{ scale: 0.9 }}
           >
             <motion.svg
-              className="w-6 h-6"
+              className="w-8 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -179,7 +186,7 @@ export default function Home() {
               animate={{ y: [0, 6, 0] }}
               transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
             >
-              <path d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              <path d="M2 10l10 8 10-8" />
             </motion.svg>
           </motion.button>
         </section>
@@ -212,7 +219,8 @@ export default function Home() {
                     </div>
                   </div>
                   <p className="relative z-10 text-zinc-500 text-sm mt-3 leading-relaxed px-1">
-                    Verify Inspection. Look up inspections by ID and view recent verifications with on-chain proof.
+                    Verify Inspection. Look up inspections by ID and view recent
+                    verifications with on-chain proof.
                   </p>
                 </motion.div>
               </motion.div>
@@ -233,7 +241,8 @@ export default function Home() {
                     </div>
                   </div>
                   <p className="relative z-10 text-zinc-500 text-sm mt-3 leading-relaxed px-1">
-                    Inspection Result. See pass/fail outcome, evidence photos, and robot ID at a glance.
+                    Inspection Result. See pass/fail outcome, evidence photos,
+                    and robot ID at a glance.
                   </p>
                 </motion.div>
               </motion.div>
@@ -254,7 +263,8 @@ export default function Home() {
                     </div>
                   </div>
                   <p className="relative z-10 text-zinc-500 text-sm mt-3 leading-relaxed px-1">
-                    Inspection Detail. Robot ID, finalizer wallet, and detected components from the standard kit.
+                    Inspection Detail. Robot ID, finalizer wallet, and detected
+                    components from the standard kit.
                   </p>
                 </motion.div>
               </motion.div>
@@ -275,7 +285,8 @@ export default function Home() {
                     </div>
                   </div>
                   <p className="relative z-10 text-zinc-500 text-sm mt-3 leading-relaxed px-1">
-                    Live Commentary. Timestamped scene analysis and tags as the run plays.
+                    Live Commentary. Timestamped scene analysis and tags as the
+                    run plays.
                   </p>
                 </motion.div>
               </motion.div>
