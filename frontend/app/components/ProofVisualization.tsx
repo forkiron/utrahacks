@@ -15,8 +15,9 @@ export default function ProofVisualization({
   inspectionId,
   compact = false,
 }: ProofVisualizationProps) {
+  const cluster = process.env.NEXT_PUBLIC_SOLANA_CLUSTER ?? "";
   const explorerUrl = solanaTx
-    ? `https://explorer.solana.com/tx/${solanaTx}`
+    ? `https://explorer.solana.com/tx/${solanaTx}${cluster ? `?cluster=${cluster}` : ""}`
     : null;
 
   return (

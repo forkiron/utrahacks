@@ -89,8 +89,10 @@ export default function VerifyLandingPage() {
               {list.map((record) => {
                 const isPass = record.result === "PASS";
                 const date = new Date(record.timestamp * 1000).toLocaleString();
+                const cluster =
+                  process.env.NEXT_PUBLIC_SOLANA_CLUSTER ?? "";
                 const explorerUrl = record.solana_tx
-                  ? `https://explorer.solana.com/tx/${record.solana_tx}`
+                  ? `https://explorer.solana.com/tx/${record.solana_tx}${cluster ? `?cluster=${cluster}` : ""}`
                   : null;
                 return (
                   <li key={record.inspection_id}>
