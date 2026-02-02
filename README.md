@@ -38,7 +38,7 @@ AI-powered compliance verification for robotics competitions. Judges capture pho
 └── package.json
 ```
 
-## What you need to do (as a human)
+## What you need to do
 
 ### 1. Install (one-time)
 
